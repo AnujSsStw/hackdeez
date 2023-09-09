@@ -3,6 +3,7 @@ import { createStyles, rem } from "@mantine/core";
 export const useStyple2 = createStyles((theme) => ({
   navbar: {
     paddingTop: 0,
+    overflowY: "auto",
   },
 
   section: {

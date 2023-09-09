@@ -1,4 +1,6 @@
-import React, { Dispatch, useState } from "react";
+import React, { Dispatch, useRef, useState } from "react";
+import { Box, Input } from "@mantine/core";
+import { IconAt } from "@tabler/icons-react";
 
 const NOMINATIM_BASE_URL = "https://nominatim.openstreetmap.org/search?";
 export default function SearchBox(props: {
@@ -9,68 +11,59 @@ export default function SearchBox(props: {
   const [searchText, setSearchText] = useState("");
   const [listPlace, setListPlace] = useState([]);
 
+  function handleKeyDown(event: any) {
+    if (event.key === "Enter") {
+      // Search
+      const params = {
+        q: searchText,
+        format: "json",
+        addressdetails: 1,
+        polygon_geojson: 0,
+      };
+      //   @ts-ignore
+      const queryString = new URLSearchParams(params).toString();
+      console.log(queryString);
+
+      fetch(`${NOMINATIM_BASE_URL}${queryString}`, {
+        method: "GET",
+        redirect: "follow",
+      })
+        .then((response) => response.text())
+        .then((result) => {
+          console.log(JSON.parse(result));
+          setListPlace(JSON.parse(result));
+        })
+        .catch((err) => console.log("err: ", err));
+    }
+  }
+  const ref = useRef(null);
+
   return (
-    <div
-      style={{
+    <Box
+      sx={{
         display: "flex",
         flexDirection: "column",
         position: "absolute",
         zIndex: 999,
-        backgroundColor: "green",
         padding: "10px",
-        width: "300px",
-        right: "10px",
+        left: "50%",
+        transform: "translateX(-50%)",
       }}
+      maw={300}
     >
-      <div style={{ display: "flex" }}>
-        <div style={{ flex: 1 }}>
-          <input
-            style={{ width: "100%" }}
-            value={searchText}
-            onChange={(event) => {
-              setSearchText(event.target.value);
-            }}
-          />
-        </div>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            padding: "0px 20px",
-            cursor: "pointer",
-            color: "#0070f3",
-          }}
-        >
-          <button
-            onClick={() => {
-              // Search
-              const params = {
-                q: searchText,
-                format: "json",
-                addressdetails: 1,
-                polygon_geojson: 0,
-              };
-              //   @ts-ignore
-              const queryString = new URLSearchParams(params).toString();
-              console.log(queryString);
-
-              fetch(`${NOMINATIM_BASE_URL}${queryString}`, {
-                method: "GET",
-                redirect: "follow",
-              })
-                .then((response) => response.text())
-                .then((result) => {
-                  console.log(JSON.parse(result));
-                  setListPlace(JSON.parse(result));
-                })
-                .catch((err) => console.log("err: ", err));
-            }}
-          >
-            Search
-          </button>
-        </div>
-      </div>
-      <div style={{ cursor: "pointer" }}>
+      <Input
+        icon={<IconAt />}
+        variant="filled"
+        placeholder="Search for a Place"
+        radius="sm"
+        onChange={(event) => {
+          setSearchText(event.target.value);
+        }}
+        value={searchText}
+        w={300}
+        onKeyDown={handleKeyDown}
+      />
+      <div style={{ cursor: "pointer" }} ref={ref}>
         <ul aria-label="main mailbox folders">
           {listPlace.map((item) => {
             return (
@@ -78,6 +71,8 @@ export default function SearchBox(props: {
                 <li
                   onClick={() => {
                     setSelectPosition({ lat: item.lat, lng: item.lon });
+                    ref.current.style.display = "none";
+                    setSearchText("");
                   }}
                 >
                   <p>{item?.display_name} </p>
@@ -88,6 +83,6 @@ export default function SearchBox(props: {
           })}
         </ul>
       </div>
-    </div>
+    </Box>
   );
 }

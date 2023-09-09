@@ -2,7 +2,28 @@ import { useStyple2 } from "@/components/mantine/random";
 import { useUser } from "@clerk/clerk-react";
 import { useRouter } from "next/router";
 
-import { Code, Group, Navbar, rem } from "@mantine/core";
+import {
+  ActionIcon,
+  Badge,
+  Code,
+  Flex,
+  Group,
+  Navbar,
+  Text,
+  TextInput,
+  Tooltip,
+  UnstyledButton,
+  rem,
+} from "@mantine/core";
+import {
+  IconBulb,
+  IconCheckbox,
+  IconPlus,
+  IconSearch,
+  IconUser,
+} from "@tabler/icons-react";
+import { useMemo } from "react";
+import dynamic from "next/dynamic";
 
 const Room = () => {
   const router = useRouter();
@@ -13,31 +34,22 @@ const Room = () => {
   if (!user) {
     return <div>Loading...</div>;
   }
+  const Map = useMemo(
+    () =>
+      dynamic(() => import("@/components/Map"), {
+        loading: () => <p>A map is loading</p>,
+        ssr: false,
+      }),
+    []
+  );
 
   return (
-    <>
-      {/* <h1>Room {slug}</h1>
-      <span>Logged in as {user.fullName}</span> */}
+    <Flex>
       <NavbarSearch />
-    </>
+      <Map />
+    </Flex>
   );
 };
-
-import {
-  ActionIcon,
-  Badge,
-  Text,
-  TextInput,
-  Tooltip,
-  UnstyledButton,
-} from "@mantine/core";
-import {
-  IconBulb,
-  IconCheckbox,
-  IconPlus,
-  IconSearch,
-  IconUser,
-} from "@tabler/icons-react";
 
 const links = [
   { icon: IconBulb, label: "Activity", notifications: 3 },
@@ -46,6 +58,11 @@ const links = [
 ];
 
 const collections = [
+  { emoji: "🚚", label: "Deliveries" },
+  { emoji: "💸", label: "Discounts" },
+  { emoji: "💰", label: "Profits" },
+  { emoji: "✨", label: "Reports" },
+  { emoji: "🛒", label: "Orders" },
   { emoji: "👍", label: "Sales" },
   { emoji: "🚚", label: "Deliveries" },
   { emoji: "💸", label: "Discounts" },
@@ -89,7 +106,12 @@ export function NavbarSearch() {
   ));
 
   return (
-    <Navbar height={700} width={{ sm: 300 }} p="md" className={classes.navbar}>
+    <Navbar
+      height={"100vh"}
+      width={{ sm: 300 }}
+      p="md"
+      className={classes.navbar}
+    >
       <Navbar.Section className={classes.section}>
         {/* <UserButton
           image="https://i.imgur.com/fGxgcDF.png"

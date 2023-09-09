@@ -1,14 +1,7 @@
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Ref, useEffect, useRef, useState } from "react";
-import {
-  MapContainer,
-  MapContainerProps,
-  Marker,
-  Popup,
-  TileLayer,
-  useMap,
-} from "react-leaflet";
+import { useEffect, useState } from "react";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import Geoman from "./GeomanControl";
 import SearchBox from "./SearchBox";
 
@@ -20,6 +13,12 @@ function LocationMarker() {
   const map = useMap();
 
   useEffect(() => {
+    var userlocation;
+    var icon = L.icon({
+      iconUrl: "/assets/liveLocation.svg",
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    });
     if (position?.lat && position?.lng) {
       console.log(position?.lat, position?.lng);
 
@@ -35,16 +34,16 @@ function LocationMarker() {
           map.getZoom()
         );
         setBbox([position.coords.longitude, position.coords.latitude]);
+        userlocation = L.marker(
+          [position.coords.latitude, position.coords.longitude],
+          { icon: icon, pane: "overlayPane" }
+        );
+        userlocation.addTo(map);
       });
       setGeo(false);
     }
 
-    // map.locate().on("locationfound", function (e) {
-    //   setPosition(e.latlng);
-    //   map.flyTo(e.latlng, map.getZoom());
-    //   setBbox(e.bounds.toBBoxString().split(","));
-    // });
-    //handle change that are coming from search box
+    // Create a marker to show the user location
   }, [map, setPosition, position]);
 
   const icon = L.icon({
@@ -58,7 +57,7 @@ function LocationMarker() {
   const cursors = [];
   var cursor_icon = L.divIcon({
     html:
-      '<svg width="18" height="18" style="z-index:9999!important" viewBox="0 0 18 18" fill="none" style="background:none;" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.51169 15.8783L1.08855 3.64956C0.511984 2.05552 2.05554 0.511969 3.64957 1.08853L15.8783 5.51168C17.5843 6.12877 17.6534 8.51606 15.9858 9.23072L11.2573 11.2573L9.23074 15.9858C8.51607 17.6534 6.12878 17.5843 5.51169 15.8783Z" fill="' +
+      '<svg width="18" height="18" style="z-index:9999!important; cursor:none;" viewBox="0 0 18 18" fill="none" style="background:none;" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.51169 15.8783L1.08855 3.64956C0.511984 2.05552 2.05554 0.511969 3.64957 1.08853L15.8783 5.51168C17.5843 6.12877 17.6534 8.51606 15.9858 9.23072L11.2573 11.2573L9.23074 15.9858C8.51607 17.6534 6.12878 17.5843 5.51169 15.8783Z" fill="' +
       "black" +
       '"/></svg>',
     iconSize: [22, 22], // size of the icon
@@ -81,19 +80,11 @@ function LocationMarker() {
   cursor_instance.addTo(map);
 
   useEffect(() => {
-    // map.on("mousemove", function (e) {
-    //   cursor_instance.setLatLng(e.latlng);
-    // });
-  }, [map]);
-  // make lat lng move
-
-  setInterval(() => {
-    let val = Math.random() * 0.1;
-    cursor_instance.setLatLng({
-      lat: cursor_instance.getLatLng().lat + val,
-      lng: cursor_instance.getLatLng().lng + val,
+    map.on("mousemove", function (e) {
+      console.log(e.latlng);
     });
-  }, 100);
+  }, [map]);
+
   return position === null ? null : (
     //   @ts-ignore
     <>
@@ -105,6 +96,7 @@ function LocationMarker() {
           <b>Southwest lat</b>: {bbox[1]} <br />
         </Popup>
       </Marker>
+      {/* pretty much ok */}
       <SearchBox selectPosition={position} setSelectPosition={setPosition} />
     </>
   );
@@ -116,7 +108,7 @@ const Map = () => {
       center={[0, 0]}
       zoom={13}
       scrollWheelZoom={true}
-      style={{ height: "100vh", width: "100%" }}
+      style={{ height: "100vh", width: "100%", cursor: "none" }}
     >
       <TileLayer
         attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'

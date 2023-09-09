@@ -1,13 +1,10 @@
-import { useEffect } from "react";
-import { useLeafletContext } from "@react-leaflet/core";
 import "@geoman-io/leaflet-geoman-free";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
+import { useEffect } from "react";
 import { useMap } from "react-leaflet";
 
 const Geoman = () => {
   const map = useMap();
-
-  map.pm.addControls();
 
   map.pm.setLang("en");
 
@@ -18,6 +15,22 @@ const Geoman = () => {
     hintlineStyle: { color: "rgba(0, 255, 102, 0.5)", dashArray: [5, 5] },
     pathOptions: { color: "rgba(0, 255, 102, 0.5)" },
   });
+
+  useEffect(() => {
+    map.pm.addControls({
+      drawCircleMarker: false,
+      drawPolyline: false,
+      drawRectangle: true,
+      drawPolygon: true,
+      drawCircle: false,
+      drawMarker: false,
+      customControls: false,
+      rotateMode: false,
+      cutPolygon: false,
+      editMode: true,
+      dragMode: true,
+    });
+  }, [map]);
 
   return null;
 };

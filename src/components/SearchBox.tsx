@@ -10,10 +10,12 @@ export default function SearchBox(props: {
   const { selectPosition, setSelectPosition } = props;
   const [searchText, setSearchText] = useState("");
   const [listPlace, setListPlace] = useState([]);
+  const [visible, setVisible] = useState(false);
 
   function handleKeyDown(event: any) {
     if (event.key === "Enter") {
       // Search
+      setVisible(true);
       const params = {
         q: searchText,
         format: "json",
@@ -36,7 +38,6 @@ export default function SearchBox(props: {
         .catch((err) => console.log("err: ", err));
     }
   }
-  const ref = useRef(null);
 
   return (
     <Box
@@ -63,26 +64,28 @@ export default function SearchBox(props: {
         w={300}
         onKeyDown={handleKeyDown}
       />
-      <div style={{ cursor: "pointer" }} ref={ref}>
-        <ul aria-label="main mailbox folders">
-          {listPlace.map((item) => {
-            return (
-              <div key={item?.place_id}>
-                <li
-                  onClick={() => {
-                    setSelectPosition({ lat: item.lat, lng: item.lon });
-                    ref.current.style.display = "none";
-                    setSearchText("");
-                  }}
-                >
-                  <p>{item?.display_name} </p>
-                </li>
-                <br />
-              </div>
-            );
-          })}
-        </ul>
-      </div>
+      {visible && (
+        <Box sx={{ cursor: "pointer" }} bg={"cyan"} w={300} mt={10}>
+          <ul aria-label="main mailbox folders">
+            {listPlace.map((item) => {
+              return (
+                <div key={item?.place_id}>
+                  <li
+                    onClick={() => {
+                      setSelectPosition({ lat: item.lat, lng: item.lon });
+                      setSearchText("");
+                      setVisible(false);
+                    }}
+                  >
+                    <p>{item?.display_name} </p>
+                  </li>
+                  <br />
+                </div>
+              );
+            })}
+          </ul>
+        </Box>
+      )}
     </Box>
   );
 }

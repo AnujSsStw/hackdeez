@@ -1,21 +1,22 @@
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   MapContainer,
   Marker,
-  Polyline,
   TileLayer,
+  Tooltip,
   ZoomControl,
   useMap,
   useMapEvents,
+  GeoJSON,
 } from "react-leaflet";
 import Geoman from "./GeomanControl";
 import SearchBox from "./SearchBox";
 import LiveLocationButton from "./mantine/Location";
-import Share from "./mantine/share";
+import usePresence, { isOnline } from "@/hooks/usePresence";
 
-function LocationMarker() {
+function LocationMarker(props: Data) {
   const [position, setPosition] = useState<any>([51.52, -0.09]);
   const [searchLocation, setSearchLocation] = useState<any>(null);
   const map = useMap();
@@ -40,39 +41,26 @@ function LocationMarker() {
     a.locate();
   }, [a]);
 
-  // const map = useMap();
-  // for curr user live location
-  // useEffect(() => {
-  //   liveLocation();
-  // }, [userlocation, map]);
+  useEffect(() => {
+    if (searchLocation) {
+      a.flyTo(searchLocation, a.getZoom());
+    }
+  }, [searchLocation]);
 
-  // var cursor_icon = L.divIcon({
-  //   html:
-  //     '<svg width="18" height="18" style="z-index:9999!important; cursor:none;" viewBox="0 0 18 18" fill="none" style="background:none;" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.51169 15.8783L1.08855 3.64956C0.511984 2.05552 2.05554 0.511969 3.64957 1.08853L15.8783 5.51168C17.5843 6.12877 17.6534 8.51606 15.9858 9.23072L11.2573 11.2573L9.23074 15.9858C8.51607 17.6534 6.12878 17.5843 5.51169 15.8783Z" fill="' +
-  //     "black" +
-  //     '"/></svg>',
-  //   iconSize: [22, 22], // size of the icon
-  //   iconAnchor: [0, 0], // point of the icon which will correspond to marker's location
-  //   shadowAnchor: [4, 62], // the same for the shadow
-  //   popupAnchor: [-3, -76], // point from which the popup should open relative to the iconAnchor
-  //   className: "cursoricon",
-  // });
-
-  // var cursor_instance = L.marker(position, {
-  //   icon: cursor_icon,
-  //   pane: "markerPane",
-  // });
-  // // The "tooltip" is just the name of the user that's displayed in the cursor
-  // cursor_instance.bindTooltip("ani", {
-  //   permanent: true,
-  //   offset: [14, 32],
-  //   direction: "right",
-  // });
-  // cursor_instance.addTo(map);
+  // const [data, others, updatePresence] = usePresence(
+  //   props.roomId as string,
+  //   props.userId,
+  //   {
+  //     emoji: "👋",
+  //     lat: 0,
+  //     lng: 0,
+  //   }
+  // );
 
   // useEffect(() => {
   //   map.on("mousemove", function (e) {
   //     console.log(e.latlng);
+  //     void updatePresence({ lat: e.latlng.lat, lng: e.latlng.lng });
   //   });
   //   // when click on drawed polygon
   // }, [map]);
@@ -85,11 +73,17 @@ function LocationMarker() {
     tooltipAnchor: [16, -28],
   });
 
-  useEffect(() => {
-    if (searchLocation) {
-      a.flyTo(searchLocation, a.getZoom());
-    }
-  }, [searchLocation]);
+  var cursor_icon = L.divIcon({
+    html:
+      '<svg width="18" height="18" style="z-index:9999!important; cursor:none;" viewBox="0 0 18 18" fill="none" style="background:none;" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.51169 15.8783L1.08855 3.64956C0.511984 2.05552 2.05554 0.511969 3.64957 1.08853L15.8783 5.51168C17.5843 6.12877 17.6534 8.51606 15.9858 9.23072L11.2573 11.2573L9.23074 15.9858C8.51607 17.6534 6.12878 17.5843 5.51169 15.8783Z" fill="' +
+      "black" +
+      '"/></svg>',
+    iconSize: [22, 22], // size of the icon
+    iconAnchor: [0, 0], // point of the icon which will correspond to marker's location
+    shadowAnchor: [4, 62], // the same for the shadow
+    popupAnchor: [-3, -76], // point from which the popup should open relative to the iconAnchor
+    className: "cursoricon",
+  });
 
   return position === null ? null : (
     //   @ts-ignore
@@ -103,12 +97,32 @@ function LocationMarker() {
         selectPosition={searchLocation}
         setSelectPosition={setSearchLocation}
       />
+
+      {/* {others
+        ?.filter(isOnline)
+        .filter((presence) => presence.data.lat && presence.data.lng)
+        .map((presence) => {
+          return (
+            <Marker
+              key={presence.created}
+              position={[presence.data.lat, presence.data.lng]}
+              icon={cursor_icon}
+            >
+              <Tooltip>{presence.user}</Tooltip>
+            </Marker>
+          );
+        })} */}
       {/* <Share mapName="map" /> */}
     </>
   );
 }
 
-const Map = () => {
+type Data = {
+  userId: string;
+  roomId: string | string[] | undefined;
+};
+
+const Map = (props: Data) => {
   return (
     <MapContainer
       center={[0, 0]}
@@ -122,7 +136,7 @@ const Map = () => {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         // className="map-tile"
       />
-      <LocationMarker />
+      <LocationMarker {...props} />
       <Geoman />
     </MapContainer>
   );

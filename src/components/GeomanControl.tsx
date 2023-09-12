@@ -2,14 +2,21 @@ import "@geoman-io/leaflet-geoman-free";
 import L, { geoJSON } from "leaflet";
 import Control from "react-leaflet-custom-control";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
-import { useEffect, useState } from "react";
-import { useMap } from "react-leaflet";
+import { use, useEffect, useState } from "react";
+import { useMap, useMapEvents } from "react-leaflet";
 import { Button } from "@mantine/core";
 import { IconPencil } from "@tabler/icons-react";
 import { LineString, MultiLineString } from "geojson";
 
 const Geoman = () => {
   const map = useMap();
+  const [collection, setCollection] = useState<{
+    type: string;
+    features: any[];
+  }>({
+    type: "FeatureCollection",
+    features: [],
+  });
 
   map.pm.setLang("en");
 
@@ -21,6 +28,47 @@ const Geoman = () => {
     pathOptions: { color: "rgba(0, 255, 102, 0.5)" },
   });
   const [isDrawing, setIsDrawing] = useState(false);
+
+  map.on("pm:create", (e) => {
+    // @ts-ignore
+    var geojson = e.layer.toGeoJSON();
+
+    if (e.shape === "Polygon") {
+      console.log("polygon created");
+      setCollection({
+        type: "FeatureCollection",
+        features: [...collection.features, geojson],
+      });
+    } else if (e.shape === "Line") {
+      console.log("line created");
+      // @ts-ignore
+      // var points = e.layer._latlngs;
+      // console.log("points", points);
+
+      setCollection({
+        type: "FeatureCollection",
+        features: [...collection.features, geojson],
+      });
+    } else if (e.shape === "Marker") {
+      console.log("marker created");
+      setCollection({
+        type: "FeatureCollection",
+        features: [...collection.features, geojson],
+      });
+    } else if (e.shape === "Text") {
+      console.log("text created");
+      setCollection({
+        type: "FeatureCollection",
+        features: [...collection.features, geojson],
+      });
+    } else {
+      console.log("something else created");
+    }
+  });
+
+  useEffect(() => {
+    console.log("collection", collection);
+  }, [collection]);
 
   useEffect(() => {
     map.pm.addControls({
@@ -36,29 +84,6 @@ const Geoman = () => {
       rotateMode: false,
       editMode: false,
     });
-
-    map.on("pm:create", (e) => {
-      if (e.shape === "Polygon") {
-        console.log("polygon created");
-      } else if (e.shape === "Line") {
-        console.log("line created");
-        // here you got the polygon points
-        // @ts-ignore
-        var points = e.layer._latlngs;
-        console.log("points", points);
-
-        // here you can get it in geojson format
-        // @ts-ignore
-        var geojson = e.layer.toGeoJSON();
-        console.log("geojson", geojson);
-      } else if (e.shape === "Marker") {
-        console.log("marker created");
-      } else if (e.shape === "Text") {
-        console.log("text created");
-      } else {
-        console.log("something else created");
-      }
-    });
   }, []);
 
   window.addEventListener("keydown", (e) => {
@@ -69,7 +94,7 @@ const Geoman = () => {
   });
 
   let paintMode = false;
-  var myPolyline: L.Polyline<LineString | MultiLineString, any>;
+  let myPolyline: L.Polyline<LineString | MultiLineString, any>;
   if (isDrawing) {
     map.on("click", function () {
       paintMode = !paintMode;

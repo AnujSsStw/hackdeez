@@ -31,9 +31,6 @@ const Room = () => {
   const { user } = useUser();
   const { slug } = router.query;
 
-  if (!user) {
-    return <div>Loading...</div>;
-  }
   const Map = useMemo(
     () =>
       dynamic(() => import("@/components/Map"), {
@@ -42,11 +39,16 @@ const Room = () => {
       }),
     []
   );
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
+  console.log(user);
 
   return (
     <Flex>
       <NavbarSearch />
-      <Map />
+      <Map roomId={slug![0]} userId={user!.id} />
     </Flex>
   );
 };

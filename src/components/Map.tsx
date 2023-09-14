@@ -1,11 +1,10 @@
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   MapContainer,
   Marker,
   TileLayer,
-  Tooltip,
   ZoomControl,
   useMap,
   useMapEvents,
@@ -14,7 +13,7 @@ import {
 import Geoman from "./GeomanControl";
 import SearchBox from "./SearchBox";
 import LiveLocationButton from "./mantine/Location";
-import usePresence, { isOnline } from "@/hooks/usePresence";
+import { Id } from "../../convex/_generated/dataModel";
 
 function LocationMarker(props: Data) {
   const [position, setPosition] = useState<any>([51.52, -0.09]);
@@ -46,6 +45,26 @@ function LocationMarker(props: Data) {
       a.flyTo(searchLocation, a.getZoom());
     }
   }, [searchLocation]);
+
+  // add geojson to map
+  // useEffect(() => {
+  //   if (props.geojson) {
+  //     props.geojson?.forEach((feat) => {
+  //       let geojsonFeature = {
+  //         type: "Feature",
+  //         properties: {
+  //           name: feat.properties.popupContent,
+  //         },
+  //         geometry: {
+  //           type: feat.geometry.type,
+  //           coordinates: feat.geometry.coordinates,
+  //         },
+  //       };
+
+  //       L.geoJSON(geojsonFeature).addTo(a);
+  //     });
+  //   }
+  // }, [props.geojson]);
 
   // const [data, others, updatePresence] = usePresence(
   //   props.roomId as string,
@@ -120,6 +139,15 @@ function LocationMarker(props: Data) {
 type Data = {
   userId: string;
   roomId: string | string[] | undefined;
+  geojson?:
+    | ({
+        _id: Id<"feat">;
+        _creationTime: number;
+        type: string;
+        geometry: any;
+        properties: {};
+      } | null)[]
+    | undefined;
 };
 
 const Map = (props: Data) => {
@@ -136,8 +164,20 @@ const Map = (props: Data) => {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         // className="map-tile"
       />
+      {props.geojson?.map((feat) => {
+        return (
+          <GeoJSON
+            key={feat?._id}
+            data={feat}
+            style={{ color: "red", fillColor: "red" }}
+            onEachFeature={(feature, layer) => {
+              layer.bindPopup(feature.properties.popupContent);
+            }}
+          />
+        );
+      })}
       <LocationMarker {...props} />
-      <Geoman />
+      <Geoman mapId={props.roomId} />
     </MapContainer>
   );
 };

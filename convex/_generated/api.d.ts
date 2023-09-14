@@ -14,6 +14,7 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as map from "../map";
 import type * as presence from "../presence";
 
 /**
@@ -25,6 +26,7 @@ import type * as presence from "../presence";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  map: typeof map;
   presence: typeof presence;
 }>;
 export declare const api: FilterApi<

@@ -12,4 +12,15 @@ export default defineSchema({
     .index("by_room_updated", ["room", "updated"])
     // Index for updating presence data
     .index("by_user_room", ["user", "room"]),
+  map: defineTable({
+    name: v.optional(v.string()),
+    des: v.optional(v.string()),
+    featIds: v.array(v.id("feat")),
+    mapId: v.string(),
+  }).index("by_mapId", ["mapId"]),
+  feat: defineTable({
+    type: v.string(),
+    geometry: v.any(),
+    properties: v.any(),
+  }),
 });

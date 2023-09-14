@@ -39,6 +39,12 @@ export default function SearchBox(props: {
     }
   }
 
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      setVisible(false);
+    }
+  });
+
   return (
     <Box
       sx={{
@@ -65,12 +71,13 @@ export default function SearchBox(props: {
         onKeyDown={handleKeyDown}
       />
       {visible && (
-        <Box sx={{ cursor: "pointer" }} bg={"cyan"} w={300} mt={10}>
-          <ul aria-label="main mailbox folders">
+        <Box sx={{ cursor: "pointer" }} w={300} mt={10}>
+          <ul className="bg-white border border-gray-100 w-full mt-2 ">
             {listPlace.map((item) => {
               return (
                 <div key={item?.place_id}>
                   <li
+                    className="pl-8 pr-2 py-1 border-b-2 border-gray-100 relative cursor-pointer hover:bg-yellow-50 hover:text-gray-900"
                     onClick={() => {
                       setSelectPosition({ lat: item.lat, lng: item.lon });
                       setSearchText("");
@@ -79,7 +86,6 @@ export default function SearchBox(props: {
                   >
                     <p>{item?.display_name} </p>
                   </li>
-                  <br />
                 </div>
               );
             })}

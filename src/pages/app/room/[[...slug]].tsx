@@ -24,13 +24,11 @@ import {
 } from "@tabler/icons-react";
 import { useMemo } from "react";
 import dynamic from "next/dynamic";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
+import Foo from "@/components/val";
 
 const Room = () => {
-  const router = useRouter();
-
-  const { user } = useUser();
-  const { slug } = router.query;
-
   const Map = useMemo(
     () =>
       dynamic(() => import("@/components/Map"), {
@@ -39,16 +37,38 @@ const Room = () => {
       }),
     []
   );
-  if (!user) {
+  const router = useRouter();
+
+  const { user } = useUser();
+  const { slug } = router.query;
+
+  const geo = useQuery(
+    api.map.mapfeat,
+    slug !== undefined && user !== undefined
+      ? { mapId: slug[0], userId: user!.id }
+      : "skip"
+  );
+  const geoMut = useMutation(api.map.insertMap);
+
+  if (!user || !slug) {
     return <div>Loading...</div>;
   }
 
-  console.log(user);
+  console.log(geo);
+  if (geo?.length === 0) {
+    (async () => {
+      await geoMut({
+        mapId: slug![0],
+      });
+    })();
+  }
+
+  // const geo = undefined;
 
   return (
     <Flex>
       <NavbarSearch />
-      <Map roomId={slug![0]} userId={user!.id} />
+      <Map roomId={slug![0]} userId={user!.id} geojson={geo} />
     </Flex>
   );
 };
@@ -66,14 +86,6 @@ const collections = [
   { emoji: "✨", label: "Reports" },
   { emoji: "🛒", label: "Orders" },
   { emoji: "👍", label: "Sales" },
-  { emoji: "🚚", label: "Deliveries" },
-  { emoji: "💸", label: "Discounts" },
-  { emoji: "💰", label: "Profits" },
-  { emoji: "✨", label: "Reports" },
-  { emoji: "🛒", label: "Orders" },
-  { emoji: "📅", label: "Events" },
-  { emoji: "🙈", label: "Debts" },
-  { emoji: "💁‍♀️", label: "Customers" },
 ];
 
 export function NavbarSearch() {
@@ -94,16 +106,18 @@ export function NavbarSearch() {
   ));
 
   const collectionLinks = collections.map((collection) => (
-    <a
-      href="/"
-      onClick={(event) => event.preventDefault()}
-      key={collection.label}
-      className={classes.collectionLink}
-    >
+    // <Foo
+    //   key={collection.label}
+    //   emoji={collection.emoji}
+    //   label={collection.label}
+    //   classs={classes.collectionLink}
+    // />
+    <a className={classes.collectionLink} key={collection.emoji}>
       <span style={{ marginRight: rem(9), fontSize: rem(16) }}>
-        {collection.emoji}
-      </span>{" "}
-      {collection.label}
+        {collection.label}
+      </span>
+
+      {collection.emoji}
     </a>
   ));
 

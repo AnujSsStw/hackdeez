@@ -7,7 +7,7 @@
  * - Use Convex `auth` to authenticate users rather than passing up a "user"
  * - Check that the user is allowed to be in a given room.
  */
-import { v } from "convex/values"
+import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
 const LIST_LIMIT = 20;
@@ -24,7 +24,7 @@ const LIST_LIMIT = 20;
  */
 export const update = mutation({
   args: { room: v.string(), user: v.string(), data: v.any() },
-  handler: async ( ctx, { room, user, data }) => {
+  handler: async (ctx, { room, user, data }) => {
     const existing = await ctx.db
       .query("presence")
       .withIndex("by_user_room", (q) => q.eq("user", user).eq("room", room))
@@ -39,7 +39,7 @@ export const update = mutation({
         updated: Date.now(),
       });
     }
-  }
+  },
 });
 
 /**
@@ -59,7 +59,7 @@ export const heartbeat = mutation({
     if (existing) {
       await ctx.db.patch(existing._id, { updated: Date.now() });
     }
-  }
+  },
 });
 
 /**
@@ -72,16 +72,17 @@ export const heartbeat = mutation({
  */
 export const list = query({
   args: { room: v.string() },
-  handler:async (ctx, { room }) => {
-  const presence = await ctx.db
-    .query("presence")
-    .withIndex("by_room_updated", (q) => q.eq("room", room))
-    .order("desc")
-    .take(LIST_LIMIT);
-  return presence.map(({ _creationTime, updated, user, data }) => ({
-    created: _creationTime,
-    updated,
-    user,
-    data,
-  }));
-}});
+  handler: async (ctx, { room }) => {
+    const presence = await ctx.db
+      .query("presence")
+      .withIndex("by_room_updated", (q) => q.eq("room", room))
+      .order("desc")
+      .take(LIST_LIMIT);
+    return presence.map(({ _creationTime, updated, user, data }) => ({
+      created: _creationTime,
+      updated,
+      user,
+      data,
+    }));
+  },
+});

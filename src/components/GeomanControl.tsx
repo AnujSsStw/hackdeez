@@ -1,18 +1,24 @@
 import "@geoman-io/leaflet-geoman-free";
-import L, { geoJSON } from "leaflet";
-import Control from "react-leaflet-custom-control";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
-import { use, useEffect, useState } from "react";
-import { useMap, useMapEvents } from "react-leaflet";
-import { Button } from "@mantine/core";
+import { Box, Button, Dialog, Group, Text, TextInput } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { IconPencil } from "@tabler/icons-react";
+import { useMutation } from "convex/react";
 import { LineString, MultiLineString } from "geojson";
+import L from "leaflet";
+import { useEffect, useState } from "react";
+import { useMap } from "react-leaflet";
+import Control from "react-leaflet-custom-control";
+import { api } from "../../convex/_generated/api";
+import { modals } from "@mantine/modals";
+import { Id } from "../../convex/_generated/dataModel";
 
-const Geoman = () => {
+const Geoman = (props: { mapId: string | string[] | undefined }) => {
   const map = useMap();
+  const [opened, { toggle, close }] = useDisclosure(false);
   const [collection, setCollection] = useState<{
     type: string;
-    features: any[];
+    features: any;
   }>({
     type: "FeatureCollection",
     features: [],
@@ -28,6 +34,10 @@ const Geoman = () => {
     pathOptions: { color: "rgba(0, 255, 102, 0.5)" },
   });
   const [isDrawing, setIsDrawing] = useState(false);
+  const featAdd = useMutation(api.map.insertFeat);
+  const mapFeatMut = useMutation(api.map.insertFeatToMap);
+  const [locationDes, setLocationDes] = useState<string>("");
+  const [runUpdate, setRunUpdate] = useState<boolean>(false);
 
   map.on("pm:create", (e) => {
     // @ts-ignore
@@ -35,9 +45,10 @@ const Geoman = () => {
 
     if (e.shape === "Polygon") {
       console.log("polygon created");
+      toggle();
       setCollection({
         type: "FeatureCollection",
-        features: [...collection.features, geojson],
+        features: geojson,
       });
     } else if (e.shape === "Line") {
       console.log("line created");
@@ -47,28 +58,35 @@ const Geoman = () => {
 
       setCollection({
         type: "FeatureCollection",
-        features: [...collection.features, geojson],
+        features: geojson,
       });
     } else if (e.shape === "Marker") {
       console.log("marker created");
       setCollection({
         type: "FeatureCollection",
-        features: [...collection.features, geojson],
+        features: geojson,
       });
     } else if (e.shape === "Text") {
       console.log("text created");
       setCollection({
         type: "FeatureCollection",
-        features: [...collection.features, geojson],
+        features: geojson,
       });
     } else {
       console.log("something else created");
     }
   });
+  const remveFeat = useMutation(api.map.removeFeatFromMap);
 
   useEffect(() => {
     console.log("collection", collection);
-  }, [collection]);
+    if (collection.features.length === 0) return;
+
+    (async () => {
+      const featid = await featAdd(collection.features);
+      await mapFeatMut({ featId: featid, mapId: props.mapId as string });
+    })();
+  }, [runUpdate]);
 
   useEffect(() => {
     map.pm.addControls({
@@ -83,6 +101,15 @@ const Geoman = () => {
       cutPolygon: false,
       rotateMode: false,
       editMode: false,
+      dragMode: false,
+    });
+    map.on("pm:remove", async (e) => {
+      // console.log("pm:remove", e.layer.feature._id);
+      if (e.layer.feature?._id === undefined) return;
+      await remveFeat({
+        featId: e.layer.feature._id as Id<"feat">,
+        mapId: props.mapId as string,
+      });
     });
   }, []);
 
@@ -104,6 +131,11 @@ const Geoman = () => {
           weight: 3,
           smoothFactor: 1,
         }).addTo(map);
+      } else {
+        setCollection({
+          type: "FeatureCollection",
+          features: [...collection.features, myPolyline.toGeoJSON() as any],
+        });
       }
     });
 
@@ -120,20 +152,64 @@ const Geoman = () => {
     paintMode = false;
   }
 
+  function addInCollection() {
+    if (locationDes.length === 0) return;
+    console.log("addInCollection");
+    setCollection({
+      type: "FeatureCollection",
+      features: {
+        ...collection.features,
+        properties: {
+          ...collection.features.properties,
+          popupContent: locationDes,
+        },
+      },
+    });
+    setRunUpdate(!runUpdate);
+    close();
+  }
+
   return (
-    <Control position="topright">
-      <Button
-        color="inherit"
-        onClick={() => {
-          setIsDrawing(!isDrawing);
-        }}
-        sx={{
-          border: "1px solid black",
-        }}
+    <>
+      <Control position="topright">
+        <Button
+          color="inherit"
+          onClick={() => {
+            setIsDrawing(!isDrawing);
+          }}
+          sx={{
+            border: "1px solid black",
+          }}
+        >
+          <IconPencil />
+        </Button>
+      </Control>
+
+      <Dialog
+        opened={opened}
+        // withCloseButton
+        onClose={close}
+        size="lg"
+        radius="md"
+        zIndex={999999999999}
       >
-        <IconPencil />
-      </Button>
-    </Control>
+        <Text size="sm" mb="xs" weight={500}>
+          Subscribe to email newsletter
+        </Text>
+
+        <Group align="flex-end">
+          <TextInput
+            onChange={(e) => {
+              setLocationDes(e.currentTarget.value);
+            }}
+            placeholder="hello@gluesticker.com"
+            sx={{ flex: 1 }}
+            value={locationDes}
+          />
+          <Button onClick={addInCollection}>Add</Button>
+        </Group>
+      </Dialog>
+    </>
   );
 };
 

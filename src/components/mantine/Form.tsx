@@ -8,11 +8,31 @@ import {
   Title,
 } from "@mantine/core";
 import { useRouter } from "next/router";
+import { useForm } from "@mantine/form";
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 export function AuthenticationTitle() {
+  const form = useForm({
+    initialValues: {
+      name: "",
+      des: "",
+    },
+  });
   const router = useRouter();
-  function handleStart() {
+  function handleStart() {}
+  const geoMut = useMutation(api.map.insertMap);
+
+  async function handleMapCreation() {
     const id = guid();
+
+    await geoMut({
+      mapId: id,
+      name: form.values.name,
+      des: form.values.des,
+      isPublic: false,
+    });
+
     router.push(`/app/room/${id}`);
   }
 
@@ -29,16 +49,24 @@ export function AuthenticationTitle() {
       </Title>
 
       <Paper withBorder shadow="md" p={30} mt={30} radius="md">
-        <TextInput label="Name" placeholder="you@mantine" required />
-        <Textarea
-          placeholder="Your comment"
-          label="Your comment"
-          withAsterisk
-          pt={10}
-        />
-        <Button fullWidth mt="xl" onClick={handleStart}>
-          Start
-        </Button>
+        <form onSubmit={form.onSubmit(handleMapCreation)}>
+          <TextInput
+            label="Name"
+            placeholder="London adventure"
+            required
+            {...form.getInputProps("name")}
+          />
+          <Textarea
+            {...form.getInputProps("des")}
+            placeholder="Cool place to visit"
+            label="Description"
+            withAsterisk
+            pt={10}
+          />
+          <Button fullWidth mt="xl" type="submit">
+            Start
+          </Button>
+        </form>
       </Paper>
     </Container>
   );

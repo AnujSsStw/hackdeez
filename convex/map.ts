@@ -27,15 +27,16 @@ export const insertMap = mutation({
     name: v.optional(v.string()),
     des: v.optional(v.string()),
     mapId: v.string(),
+    isPublic: v.boolean(),
   },
-  handler: async (ctx, { name, des, mapId }) => {
+  handler: async (ctx, { name, des, mapId, isPublic }) => {
     const existing = await ctx.db
       .query("map")
       .withIndex("by_mapId", (q) => q.eq("mapId", mapId))
       .unique();
     if (existing) {
     } else {
-      await ctx.db.insert("map", { mapId, name, des, featIds: [] });
+      await ctx.db.insert("map", { mapId, name, des, featIds: [], isPublic });
     }
   },
 });
@@ -79,5 +80,20 @@ export const removeFeatFromMap = mutation({
     await ctx.db.patch(map._id, {
       featIds: map.featIds.filter((id) => id !== featId),
     });
+  },
+});
+
+export const getMap = query({
+  args: { mapId: v.string() },
+  handler: async (ctx, { mapId }) => {
+    const existing = await ctx.db
+      .query("map")
+      .withIndex("by_mapId", (q) => q.eq("mapId", mapId))
+      .unique();
+    if (existing) {
+      return existing;
+    } else {
+      return null;
+    }
   },
 });

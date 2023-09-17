@@ -23,5 +23,6 @@ export default defineSchema({
     type: v.string(),
     geometry: v.any(),
     properties: v.any(),
+    style: v.optional(v.any()),
   }),
 });

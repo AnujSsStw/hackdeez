@@ -20,7 +20,6 @@ export function AuthenticationTitle() {
     },
   });
   const router = useRouter();
-  function handleStart() {}
   const geoMut = useMutation(api.map.insertMap);
 
   async function handleMapCreation() {
@@ -63,7 +62,13 @@ export function AuthenticationTitle() {
             withAsterisk
             pt={10}
           />
-          <Button fullWidth mt="xl" type="submit">
+          <Button
+            fullWidth
+            mt="xl"
+            type="submit"
+            variant="outline"
+            color="orange"
+          >
             Start
           </Button>
         </form>

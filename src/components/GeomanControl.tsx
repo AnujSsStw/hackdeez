@@ -1,16 +1,32 @@
 import "@geoman-io/leaflet-geoman-free";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
-import { Box, Button, Dialog, Group, Text, TextInput } from "@mantine/core";
+import {
+  Box,
+  Button,
+  ColorPicker,
+  Dialog,
+  Group,
+  Menu,
+  Text,
+  TextInput,
+} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { IconPencil } from "@tabler/icons-react";
+import {
+  IconColorSwatch,
+  IconPencil,
+  IconPencilBolt,
+} from "@tabler/icons-react";
+import * as turf from "@turf/turf";
 import { useMutation } from "convex/react";
 import { LineString, MultiLineString } from "geojson";
 import L from "leaflet";
+import "leaflet-routing-machine";
+import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 import { use, useEffect, useState } from "react";
 import { useMap } from "react-leaflet";
-import Control from "react-leaflet-custom-control";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
+import "leaflet-simple-map-screenshoter";
 
 const Geoman = (props: { mapId: string | string[] | undefined }) => {
   const map = useMap();
@@ -30,6 +46,7 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
   const [runUpdate, setRunUpdate] = useState<boolean>(false);
 
   const remveFeat = useMutation(api.map.removeFeatFromMap);
+  const [color, onChange] = useState("rgba(47, 119, 150, 0.7)");
 
   useEffect(() => {
     console.log("collection", collection);
@@ -51,6 +68,12 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
       })();
     }
   }, [collection]);
+  // useEffect(() => {
+  //   if (map.hasLayer(L.simpleMapScreenshoter() as any)) {
+  //     map.removeLayer(L.simpleMapScreenshoter() as any);
+  //   }
+  //   L.simpleMapScreenshoter().addTo(map);
+  // }, []);
 
   useEffect(() => {
     map.pm.setLang("en");
@@ -89,17 +112,23 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
 
     map.on("pm:create", (e) => {
       // @ts-ignore
-      var geojson = e.layer.toGeoJSON();
+      const geojson = e.layer.toGeoJSON();
 
       if (e.shape === "Polygon") {
-        console.log("polygon created");
+        const area = parseFloat((turf.area(geojson) * 0.000001).toFixed(2));
+        console.log("polygon created area", area);
+
         toggle();
         setCollection({
           type: "FeatureCollection",
           features: geojson,
         });
       } else if (e.shape === "Line") {
-        console.log("line created");
+        const something = parseFloat(
+          turf.length(geojson, { units: "miles" }).toFixed(2)
+        );
+        console.log("line created len", something);
+
         toggle();
         setCollection({
           type: "FeatureCollection",
@@ -126,9 +155,10 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
     });
 
     map.on("pm:remove", async (e) => {
-      // console.log("pm:remove", e.layer.feature._id);
+      // @ts-ignore
       if (e.layer.feature?._id === undefined) return;
       await remveFeat({
+        // @ts-ignore
         featId: e.layer.feature._id as Id<"feat">,
         mapId: props.mapId as string,
       });
@@ -149,15 +179,19 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
       map.on("click", function () {
         paintMode = !paintMode;
         if (paintMode) {
+          // add a marker of pencil
           myPolyline = L.polyline([], {
-            color: "red",
+            color: color,
             weight: 3,
             smoothFactor: 1,
           }).addTo(map);
         } else {
           setCollection({
             type: "drawing",
-            features: myPolyline.toGeoJSON() as any,
+            features: {
+              ...myPolyline.toGeoJSON(),
+              style: { color: color },
+            } as any,
           });
         }
       });
@@ -205,7 +239,6 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
           width: "32px",
           height: "32px",
         }}
-        className="leaflet-touch leaflet-control-layers leaflet-touch leaflet-bar"
       >
         <Box
           sx={{
@@ -219,13 +252,45 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
             alignItems: "center",
             borderRadius: "2px",
             cursor: "pointer",
+            marginBottom: "12px",
           }}
+          className="leaflet-touch leaflet-control-layers leaflet-touch leaflet-bar"
           onClick={() => {
             setIsDrawing(!isDrawing);
           }}
         >
-          <IconPencil />
+          {isDrawing ? <IconPencilBolt /> : <IconPencil />}
         </Box>
+        <Menu position="left">
+          <Menu.Target>
+            <Box
+              sx={{
+                background: color,
+                boxShadow: "5px",
+                paddingLeft: "0px",
+                width: "inherit",
+                height: "inherit",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                borderRadius: "5px",
+                cursor: "pointer",
+              }}
+              className="leaflet-touch leaflet-touch leaflet-bar"
+            >
+              <IconColorSwatch />
+            </Box>
+          </Menu.Target>
+          <Menu.Dropdown sx={{ zIndex: 9999999999 }}>
+            <Menu.Item sx={{ zIndex: 9999999999 }}>
+              <ColorPicker
+                value={color}
+                onChange={onChange}
+                sx={{ zIndex: 9999999999 }}
+              />
+            </Menu.Item>
+          </Menu.Dropdown>
+        </Menu>
       </Box>
 
       <Dialog

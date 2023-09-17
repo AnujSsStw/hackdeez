@@ -1,10 +1,20 @@
 import { v } from "convex/values";
-import { query, mutation, internalMutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 
 export const insertFeat = mutation({
-  args: { type: v.string(), geometry: v.any(), properties: v.any() },
-  handler: async (ctx, { geometry, type, properties }) => {
-    const feat = await ctx.db.insert("feat", { geometry, type, properties });
+  args: {
+    type: v.string(),
+    geometry: v.any(),
+    properties: v.any(),
+    style: v.optional(v.any()),
+  },
+  handler: async (ctx, { geometry, type, properties, style }) => {
+    const feat = await ctx.db.insert("feat", {
+      geometry,
+      type,
+      properties,
+      style,
+    });
     return feat;
   },
 });

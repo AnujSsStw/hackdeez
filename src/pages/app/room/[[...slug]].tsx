@@ -1,9 +1,13 @@
 import { useStyple2 } from "@/components/mantine/random";
 import { useUser } from "@clerk/clerk-react";
+import { IconMapPin, IconPolygon, IconRoute } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 
+import { NotFoundTitle } from "@/components/mantine/Error";
 import Select from "@/components/mantine/Marker";
+import Messages from "@/components/mantine/Messages";
 import {
+  Accordion,
   ActionIcon,
   Button,
   CopyButton,
@@ -12,18 +16,14 @@ import {
   Modal,
   NativeSelect,
   Navbar,
+  ScrollArea,
   Text,
   TextInput,
-  Tooltip,
   rem,
+  useMantineTheme,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import {
-  IconChevronDown,
-  IconLink,
-  IconPlus,
-  IconShare,
-} from "@tabler/icons-react";
+import { IconChevronDown, IconLink, IconShare } from "@tabler/icons-react";
 import { useQuery } from "convex/react";
 import dynamic from "next/dynamic";
 import { useMemo, useRef, useState } from "react";
@@ -61,12 +61,17 @@ const Room = () => {
     return <div>Loading...</div>;
   }
 
+  if (!mapDetails) {
+    return <NotFoundTitle />;
+  }
+
   return (
     <Flex>
       <NavbarSearch
         onChange={setPlaces}
         value={places}
         d={mapDetails}
+        col={geo}
         link={router.asPath}
         mapRef={ref}
       />
@@ -81,16 +86,17 @@ const Room = () => {
   );
 };
 
-const collections = [
-  { emoji: "🚚", label: "Deliveries" },
-  { emoji: "💸", label: "Discounts" },
-  { emoji: "💰", label: "Profits" },
-  { emoji: "✨", label: "Reports" },
-  { emoji: "🛒", label: "Orders" },
-  { emoji: "👍", label: "Sales" },
-];
-
 export function NavbarSearch(props: {
+  col:
+    | ({
+        _id: Id<"feat">;
+        _creationTime: number;
+        style?: any;
+        type: string;
+        geometry: any;
+        properties: any;
+      } | null)[]
+    | undefined;
   mapRef: any;
   link: string;
   value?: string;
@@ -109,15 +115,46 @@ export function NavbarSearch(props: {
     | undefined;
 }) {
   const { classes } = useStyple2();
+  const theme = useMantineTheme();
 
-  const collectionLinks = collections.map((collection) => (
-    <a className={classes.collectionLink} key={collection.emoji}>
-      <span style={{ marginRight: rem(9), fontSize: rem(16) }}>
-        {collection.label}
-      </span>
+  function handleAccord() {
+    console.log("clicked");
+  }
 
-      {collection.emoji}
-    </a>
+  if (!props.col) {
+    return <div>Loading...</div>;
+  }
+
+  const getColor = (color: string) =>
+    theme.colors[color][theme.colorScheme === "dark" ? 5 : 7];
+
+  const collectionLinks = props.col.map((collection) => (
+    <Accordion.Item value={collection?._id!}>
+      <Accordion.Control
+        icon={
+          collection?.properties.iconLable === "IconMapPin" ? (
+            <IconMapPin size={rem(20)} color={getColor("red")} />
+          ) : collection?.properties.iconLable === "IconRoute" ? (
+            <IconRoute size={rem(20)} color={getColor("blue")} />
+          ) : collection?.properties.iconLable === "IconPolygon" ? (
+            <IconPolygon size={rem(20)} color={getColor("violet")} />
+          ) : (
+            <IconMapPin size="1rem" />
+          )
+        }
+      >
+        {collection?.properties.popupContent}
+      </Accordion.Control>
+      <Accordion.Panel onClick={handleAccord}>
+        <div>
+          {collection?.properties.area && (
+            <Text size="xs" weight={500} color="dimmed">
+              {collection?.properties.area} sq mi
+            </Text>
+          )}
+        </div>
+      </Accordion.Panel>
+    </Accordion.Item>
   ));
   const [opened, { open, close }] = useDisclosure(false);
   async function handleD() {
@@ -129,7 +166,7 @@ export function NavbarSearch(props: {
   return (
     <Navbar
       height={"100vh"}
-      width={{ sm: 300 }}
+      width={{ sm: 500, md: 400, lg: 300 }}
       p="md"
       className={classes.navbar}
     >
@@ -207,19 +244,18 @@ export function NavbarSearch(props: {
         {}
       </Navbar.Section>
 
-      <Navbar.Section className={classes.section}>
-        <Group className={classes.collectionsHeader} position="apart">
+      <Navbar.Section className={classes.section} component={ScrollArea} grow>
+        <Group className={classes.collectionsHeader}>
           <Text size="xs" weight={500} color="dimmed">
             Collections
           </Text>
-          <Tooltip label="Create collection" withArrow position="right">
-            <ActionIcon variant="default" size={18}>
-              <IconPlus size="0.8rem" stroke={1.5} />
-            </ActionIcon>
-          </Tooltip>
         </Group>
-        <div className={classes.collections}>{collectionLinks}</div>
+        <Accordion variant="default" multiple={true}>
+          {collectionLinks}
+        </Accordion>
       </Navbar.Section>
+
+      <Messages />
     </Navbar>
   );
 }

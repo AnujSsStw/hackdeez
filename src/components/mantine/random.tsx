@@ -1,9 +1,17 @@
-import { createStyles, rem } from "@mantine/core";
+import { createStyles, getStylesRef, rem } from "@mantine/core";
 
 export const useStyple2 = createStyles((theme) => ({
   navbar: {
     paddingTop: 0,
     overflowY: "auto",
+  },
+
+  footer: {
+    marginLeft: `calc(${theme.spacing.md} * -1)`,
+    marginRight: `calc(${theme.spacing.md} * -1)`,
+    // borderTop: `${rem(1)} solid ${
+    //   theme.colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[3]
+    // }`,
   },
 
   section: {
@@ -113,5 +121,31 @@ export const useStyple2 = createStyles((theme) => ({
           : theme.colors.gray[0],
       color: theme.colorScheme === "dark" ? theme.white : theme.black,
     },
+  },
+  link: {
+    ...theme.fn.focusStyles(),
+    display: "flex",
+    alignItems: "center",
+    textDecoration: "none",
+    fontSize: theme.fontSizes.sm,
+    color: theme.white,
+    padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
+    borderRadius: theme.radius.sm,
+    fontWeight: 500,
+
+    "&:hover": {
+      backgroundColor: theme.fn.lighten(
+        theme.fn.variant({ variant: "filled", color: theme.primaryColor })
+          .background!,
+        0.1
+      ),
+    },
+  },
+
+  linkIcon: {
+    ref: getStylesRef("icon"),
+    color: theme.white,
+    opacity: 0.75,
+    marginRight: theme.spacing.sm,
   },
 }));

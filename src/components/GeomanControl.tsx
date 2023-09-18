@@ -13,8 +13,11 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import {
   IconColorSwatch,
+  IconMapPin,
   IconPencil,
   IconPencilBolt,
+  IconPolygon,
+  IconRoute,
 } from "@tabler/icons-react";
 import * as turf from "@turf/turf";
 import { useMutation } from "convex/react";
@@ -116,23 +119,41 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
 
       if (e.shape === "Polygon") {
         const area = parseFloat((turf.area(geojson) * 0.000001).toFixed(2));
-        console.log("polygon created area", area);
-
-        toggle();
-        setCollection({
-          type: "FeatureCollection",
-          features: geojson,
-        });
-      } else if (e.shape === "Line") {
-        const something = parseFloat(
+        const p = parseFloat(
           turf.length(geojson, { units: "miles" }).toFixed(2)
         );
-        console.log("line created len", something);
 
         toggle();
         setCollection({
           type: "FeatureCollection",
-          features: geojson,
+          features: {
+            ...geojson,
+            properties: {
+              ...geojson.properties,
+              area: area,
+              p: p,
+              iconLable: "IconPolygon",
+            },
+          },
+        });
+      } else if (e.shape === "Line") {
+        const p = parseFloat(
+          turf.length(geojson, { units: "miles" }).toFixed(2)
+        );
+        const area = parseFloat((turf.area(geojson) * 0.000001).toFixed(2));
+
+        toggle();
+        setCollection({
+          type: "FeatureCollection",
+          features: {
+            ...geojson,
+            properties: {
+              ...geojson.properties,
+              area: area,
+              p: p,
+              iconLable: "IconRoute",
+            },
+          },
         });
       } else if (e.shape === "Marker") {
         console.log("marker created");
@@ -140,7 +161,13 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
         toggle();
         setCollection({
           type: "FeatureCollection",
-          features: geojson,
+          features: {
+            ...geojson,
+            properties: {
+              ...geojson.properties,
+              iconLable: "IconMapPin",
+            },
+          },
         });
       } else if (e.shape === "Text") {
         console.log("text created");

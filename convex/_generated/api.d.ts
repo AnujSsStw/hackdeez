@@ -15,6 +15,8 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as map from "../map";
+import type * as message from "../message";
+import type * as openAi from "../openAi";
 import type * as presence from "../presence";
 
 /**
@@ -27,6 +29,8 @@ import type * as presence from "../presence";
  */
 declare const fullApi: ApiFromModules<{
   map: typeof map;
+  message: typeof message;
+  openAi: typeof openAi;
   presence: typeof presence;
 }>;
 export declare const api: FilterApi<

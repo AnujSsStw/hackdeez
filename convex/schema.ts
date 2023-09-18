@@ -25,4 +25,13 @@ export default defineSchema({
     properties: v.any(),
     style: v.optional(v.any()),
   }),
+  messages: defineTable({
+    user: v.string(),
+    room: v.string(),
+    message: v.string(),
+  }).index("by_room", ["room"]),
+  likes: defineTable({
+    liker: v.string(),
+    messageId: v.id("messages"),
+  }).index("by_messageId", ["messageId"]),
 });

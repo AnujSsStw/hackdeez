@@ -18,12 +18,12 @@ export default defineSchema({
     featIds: v.array(v.id("feat")),
     mapId: v.string(),
     isPublic: v.boolean(),
-    anyOneWithLink: v.object({
+    sendInvite: v.object({
       restricted: v.boolean(),
-      // canView: v.array(v.string()),
       canEdit: v.array(v.string()),
     }),
     creator: v.string(),
+    anyOneWithLink: v.boolean(),
   }).index("by_mapId", ["mapId"]),
   feat: defineTable({
     type: v.string(),

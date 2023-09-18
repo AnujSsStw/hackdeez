@@ -14,6 +14,7 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as crons from "../crons";
 import type * as map from "../map";
 import type * as message from "../message";
 import type * as openAi from "../openAi";
@@ -29,6 +30,7 @@ import type * as sendEmail from "../sendEmail";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  crons: typeof crons;
   map: typeof map;
   message: typeof message;
   openAi: typeof openAi;

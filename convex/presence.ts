@@ -8,7 +8,7 @@
  * - Check that the user is allowed to be in a given room.
  */
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 
 const LIST_LIMIT = 20;
 
@@ -84,5 +84,17 @@ export const list = query({
       user,
       data,
     }));
+  },
+});
+
+export const clearAll = internalMutation({
+  handler: async (ctx) => {
+    const p = await ctx.db.query("presence").collect();
+    for (const doc of p) {
+      if (doc.updated < Date.now() - 1000 * 60 * 60 * 24 * 7) {
+        // delete if older than 7 days
+        await ctx.db.delete(doc._id);
+      }
+    }
   },
 });

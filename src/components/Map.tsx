@@ -1,15 +1,9 @@
 import usePresence, { isOnline } from "@/hooks/usePresence";
+import { randomColor } from "@/util/helper";
 import { useUser } from "@clerk/clerk-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import {
-  Dispatch,
-  MutableRefObject,
-  SetStateAction,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 import {
   GeoJSON,
   MapContainer,
@@ -22,11 +16,10 @@ import {
 } from "react-leaflet";
 import { Id } from "../../convex/_generated/dataModel";
 import Geoman from "./GeomanControl";
+import Facepile from "./Profiles";
 import SearchBox from "./SearchBox";
 import LiveLocationButton from "./mantine/Location";
 import Nearby from "./nearby";
-import { randomColor } from "@/util/helper";
-import Facepile from "./Profiles";
 
 function LocationMarker(props: Data) {
   const [position, setPosition] = useState<any>([51.52, -0.09]);
@@ -157,11 +150,12 @@ export type Data = {
         featIds: Id<"feat">[];
         mapId: string;
         isPublic: boolean;
-        anyOneWithLink: {
+        sendInvite: {
           restricted: boolean;
           canEdit: string[];
         };
         creator: string;
+        anyOneWithLink: boolean;
       }
     | null
     | undefined;
@@ -177,9 +171,9 @@ const Map = (props: Data) => {
   useEffect(() => {
     if (!props.mapDetails) return;
 
-    for (let i = 0; i < props.mapDetails.anyOneWithLink.canEdit.length; i++) {
+    for (let i = 0; i < props.mapDetails.sendInvite.canEdit.length; i++) {
       if (
-        props.mapDetails.anyOneWithLink.canEdit[i] ===
+        props.mapDetails.sendInvite.canEdit[i] ===
         user?.emailAddresses[0].emailAddress
       ) {
         setToolControl(true);

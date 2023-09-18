@@ -45,10 +45,25 @@ export const updateMapI = internalMutation({
     if (!map) return;
 
     await ctx.db.patch(map._id, {
-      anyOneWithLink: {
+      sendInvite: {
         restricted: false,
-        canEdit: [...map.anyOneWithLink.canEdit, email],
+        canEdit: [...map.sendInvite.canEdit, email],
       },
+    });
+  },
+});
+
+export const updateMapAccess = mutation({
+  args: { mapId: v.string(), anyOneWithLInk: v.boolean() },
+  handler: async (ctx, { mapId, anyOneWithLInk }) => {
+    const map = await ctx.db
+      .query("map")
+      .withIndex("by_mapId", (q) => q.eq("mapId", mapId))
+      .unique();
+    if (!map) return;
+
+    await ctx.db.patch(map._id, {
+      anyOneWithLink: anyOneWithLInk,
     });
   },
 });
@@ -59,16 +74,13 @@ export const insertMap = mutation({
     des: v.optional(v.string()),
     mapId: v.string(),
     isPublic: v.boolean(),
-    anyOneWithLink: v.object({
+    sendInvite: v.object({
       restricted: v.boolean(),
       canEdit: v.array(v.string()),
     }),
     userId: v.string(),
   },
-  handler: async (
-    ctx,
-    { name, des, mapId, isPublic, anyOneWithLink, userId }
-  ) => {
+  handler: async (ctx, { name, des, mapId, isPublic, sendInvite, userId }) => {
     const existing = await ctx.db
       .query("map")
       .withIndex("by_mapId", (q) => q.eq("mapId", mapId))
@@ -81,8 +93,9 @@ export const insertMap = mutation({
         des,
         featIds: [],
         isPublic,
-        anyOneWithLink,
         creator: userId,
+        sendInvite,
+        anyOneWithLink: false,
       });
     }
   },

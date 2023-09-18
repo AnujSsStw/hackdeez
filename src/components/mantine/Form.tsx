@@ -32,7 +32,7 @@ export function AuthenticationTitle() {
       name: form.values.name,
       des: form.values.des,
       isPublic: false,
-      anyOneWithLink: {
+      sendInvite: {
         restricted: true,
         canEdit: [],
       },

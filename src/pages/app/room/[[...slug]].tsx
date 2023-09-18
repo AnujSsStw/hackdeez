@@ -3,6 +3,7 @@ import { useUser } from "@clerk/clerk-react";
 import { IconMapPin, IconPolygon, IconRoute } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 
+import { Data } from "@/components/Map";
 import { NotFoundTitle } from "@/components/mantine/Error";
 import Select from "@/components/mantine/Marker";
 import Messages from "@/components/mantine/Messages";
@@ -23,14 +24,13 @@ import {
   useMantineTheme,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
 import { IconChevronDown, IconLink, IconShare } from "@tabler/icons-react";
-import { useAction, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import dynamic from "next/dynamic";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
-import { notifications } from "@mantine/notifications";
-import { Data } from "@/components/Map";
 
 const Room = () => {
   const Map = useMemo(
@@ -62,13 +62,21 @@ const Room = () => {
     return <NotFoundTitle />;
   }
 
-  if (
-    user.id !== mapDetails.creator &&
-    slug &&
-    mapDetails &&
-    mapDetails.anyOneWithLink?.restricted === true
-  ) {
-    return <div>Not for you bro</div>;
+  for (let i = 0; i < mapDetails.sendInvite.canEdit.length; i++) {
+    if (
+      mapDetails.sendInvite.canEdit[i] === user?.emailAddresses[0].emailAddress
+    ) {
+      break;
+    } else {
+      if (
+        user.id !== mapDetails.creator &&
+        slug &&
+        mapDetails &&
+        mapDetails.anyOneWithLink === false
+      ) {
+        return <div>Not for you bro</div>;
+      }
+    }
   }
 
   return (
@@ -112,9 +120,10 @@ export function NavbarSearch(props: {
   const { classes } = useStyple2();
   const theme = useMantineTheme();
   const [value, setValue] = useState(
-    props.d?.anyOneWithLink.restricted ? "Restricted" : "Can edit"
+    !props.d?.anyOneWithLink ? "Restricted" : "Can edit"
   );
   const performMyAction = useAction(api.sendEmail.sendMail);
+  const updateAccess = useMutation(api.map.updateMapAccess);
   const [email, setEmail] = useState("");
 
   if (!props.col) {
@@ -156,6 +165,18 @@ export function NavbarSearch(props: {
 
   async function handleD() {
     // make restricted to true is value is restricted
+
+    if (value === "Restricted") {
+      await updateAccess({
+        anyOneWithLInk: false,
+        mapId: props.d?.mapId as string,
+      });
+    } else if (value === "Can edit") {
+      await updateAccess({
+        anyOneWithLInk: true,
+        mapId: props.d?.mapId as string,
+      });
+    }
     close();
   }
   async function handleEmailInvite() {

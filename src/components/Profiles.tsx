@@ -1,15 +1,7 @@
-import {
-  Dispatch,
-  MutableRefObject,
-  SetStateAction,
-  useEffect,
-  useState,
-} from "react";
-import { isOnline, PresenceData } from "../hooks/usePresence";
-import Control from "react-leaflet-custom-control";
 import { Avatar } from "@mantine/core";
+import { useEffect, useState } from "react";
 import { useMap } from "react-leaflet";
-import { Id } from "../../convex/_generated/dataModel";
+import { PresenceData, isOnline } from "../hooks/usePresence";
 
 const UPDATE_MS = 1000;
 

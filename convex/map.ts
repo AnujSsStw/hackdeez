@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
+import { log } from "console";
 
 export const insertFeat = mutation({
   args: {
@@ -32,21 +33,57 @@ export const insertFeatToMap = mutation({
   },
 });
 
+export const updateMapI = internalMutation({
+  args: { mapId: v.string(), email: v.string() },
+  handler: async (ctx, { email, mapId }) => {
+    console.log("updateMapI", email, mapId);
+
+    const map = await ctx.db
+      .query("map")
+      .withIndex("by_mapId", (q) => q.eq("mapId", mapId))
+      .unique();
+    if (!map) return;
+
+    await ctx.db.patch(map._id, {
+      anyOneWithLink: {
+        restricted: false,
+        canEdit: [...map.anyOneWithLink.canEdit, email],
+      },
+    });
+  },
+});
+
 export const insertMap = mutation({
   args: {
     name: v.optional(v.string()),
     des: v.optional(v.string()),
     mapId: v.string(),
     isPublic: v.boolean(),
+    anyOneWithLink: v.object({
+      restricted: v.boolean(),
+      canEdit: v.array(v.string()),
+    }),
+    userId: v.string(),
   },
-  handler: async (ctx, { name, des, mapId, isPublic }) => {
+  handler: async (
+    ctx,
+    { name, des, mapId, isPublic, anyOneWithLink, userId }
+  ) => {
     const existing = await ctx.db
       .query("map")
       .withIndex("by_mapId", (q) => q.eq("mapId", mapId))
       .unique();
     if (existing) {
     } else {
-      await ctx.db.insert("map", { mapId, name, des, featIds: [], isPublic });
+      await ctx.db.insert("map", {
+        mapId,
+        name,
+        des,
+        featIds: [],
+        isPublic,
+        anyOneWithLink,
+        creator: userId,
+      });
     }
   },
 });

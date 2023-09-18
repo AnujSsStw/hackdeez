@@ -11,6 +11,7 @@ import { useRouter } from "next/router";
 import { useForm } from "@mantine/form";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { useUser } from "@clerk/clerk-react";
 
 export function AuthenticationTitle() {
   const form = useForm({
@@ -21,6 +22,7 @@ export function AuthenticationTitle() {
   });
   const router = useRouter();
   const geoMut = useMutation(api.map.insertMap);
+  const user = useUser();
 
   async function handleMapCreation() {
     const id = guid();
@@ -30,6 +32,11 @@ export function AuthenticationTitle() {
       name: form.values.name,
       des: form.values.des,
       isPublic: false,
+      anyOneWithLink: {
+        restricted: true,
+        canEdit: [],
+      },
+      userId: user.user?.id as string,
     });
 
     router.push(`/app/room/${id}`);

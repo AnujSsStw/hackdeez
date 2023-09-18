@@ -19,6 +19,7 @@ import {
   IconPolygon,
   IconRoute,
 } from "@tabler/icons-react";
+// @ts-ignore
 import * as turf from "@turf/turf";
 import { useMutation } from "convex/react";
 import { LineString, MultiLineString } from "geojson";

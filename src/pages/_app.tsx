@@ -9,6 +9,7 @@ import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import type { AppProps } from "next/app";
 import { useEffect, useState } from "react";
+import { Notifications } from "@mantine/notifications";
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -55,6 +56,7 @@ function MyApp(props: AppProps) {
           }}
         >
           <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+            <Notifications />
             <Component {...pageProps} />
           </ConvexProviderWithClerk>
         </ClerkProvider>

@@ -1,11 +1,21 @@
+import usePresence, { isOnline } from "@/hooks/usePresence";
+import { useUser } from "@clerk/clerk-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useEffect, useState } from "react";
+import {
+  Dispatch,
+  MutableRefObject,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   GeoJSON,
   MapContainer,
   Marker,
   TileLayer,
+  Tooltip,
   ZoomControl,
   useMap,
   useMapEvents,
@@ -15,10 +25,24 @@ import Geoman from "./GeomanControl";
 import SearchBox from "./SearchBox";
 import LiveLocationButton from "./mantine/Location";
 import Nearby from "./nearby";
+import { randomColor } from "@/util/helper";
+import Facepile from "./Profiles";
 
 function LocationMarker(props: Data) {
   const [position, setPosition] = useState<any>([51.52, -0.09]);
   const [searchLocation, setSearchLocation] = useState<any>(null);
+  const [data, others, updatePresence] = usePresence(
+    props.roomId as string,
+    props.userId,
+    {
+      emoji: "👋",
+      name: props.userName,
+      lat: 0,
+      lng: 0,
+      color: randomColor(),
+      img: props.profilePic,
+    }
+  );
   const map = useMap();
 
   const a = useMapEvents({
@@ -47,43 +71,10 @@ function LocationMarker(props: Data) {
     }
   }, [searchLocation]);
 
-  // add geojson to map
-  // useEffect(() => {
-  //   if (props.geojson) {
-  //     props.geojson?.forEach((feat) => {
-  //       let geojsonFeature = {
-  //         type: "Feature",
-  //         properties: {
-  //           name: feat.properties.popupContent,
-  //         },
-  //         geometry: {
-  //           type: feat.geometry.type,
-  //           coordinates: feat.geometry.coordinates,
-  //         },
-  //       };
-
-  //       L.geoJSON(geojsonFeature).addTo(a);
-  //     });
-  //   }
-  // }, [props.geojson]);
-
-  // const [data, others, updatePresence] = usePresence(
-  //   props.roomId as string,
-  //   props.userId,
-  //   {
-  //     emoji: "👋",
-  //     lat: 0,
-  //     lng: 0,
-  //   }
-  // );
-
-  // useEffect(() => {
-  //   map.on("mousemove", function (e) {
-  //     console.log(e.latlng);
-  //     void updatePresence({ lat: e.latlng.lat, lng: e.latlng.lng });
-  //   });
-  //   // when click on drawed polygon
-  // }, [map]);
+  map.on("mousemove", function (e) {
+    // console.log("working");
+    void updatePresence({ lat: e.latlng.lat, lng: e.latlng.lng });
+  });
 
   const icon = L.icon({
     iconUrl: "/assets/marker.svg",
@@ -91,18 +82,6 @@ function LocationMarker(props: Data) {
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
     tooltipAnchor: [16, -28],
-  });
-
-  var cursor_icon = L.divIcon({
-    html:
-      '<svg width="18" height="18" style="z-index:9999!important; cursor:none;" viewBox="0 0 18 18" fill="none" style="background:none;" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.51169 15.8783L1.08855 3.64956C0.511984 2.05552 2.05554 0.511969 3.64957 1.08853L15.8783 5.51168C17.5843 6.12877 17.6534 8.51606 15.9858 9.23072L11.2573 11.2573L9.23074 15.9858C8.51607 17.6534 6.12878 17.5843 5.51169 15.8783Z" fill="' +
-      "black" +
-      '"/></svg>',
-    iconSize: [22, 22], // size of the icon
-    iconAnchor: [0, 0], // point of the icon which will correspond to marker's location
-    shadowAnchor: [4, 62], // the same for the shadow
-    popupAnchor: [-3, -76], // point from which the popup should open relative to the iconAnchor
-    className: "cursoricon",
   });
 
   return position === null ? null : (
@@ -119,26 +98,43 @@ function LocationMarker(props: Data) {
       />
       <Nearby places={props.places} id={props.roomId as string} />
 
-      {/* {others
+      <Facepile othersPresence={others} />
+
+      {others
         ?.filter(isOnline)
         .filter((presence) => presence.data.lat && presence.data.lng)
         .map((presence) => {
           return (
             <Marker
-              key={presence.created}
+              key={presence.updated}
               position={[presence.data.lat, presence.data.lng]}
-              icon={cursor_icon}
+              icon={L.divIcon({
+                html:
+                  '<svg width="18" height="18" style="z-index:9999!important; cursor:none;" viewBox="0 0 18 18" fill="none" style="background:none;" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.51169 15.8783L1.08855 3.64956C0.511984 2.05552 2.05554 0.511969 3.64957 1.08853L15.8783 5.51168C17.5843 6.12877 17.6534 8.51606 15.9858 9.23072L11.2573 11.2573L9.23074 15.9858C8.51607 17.6534 6.12878 17.5843 5.51169 15.8783Z" fill="' +
+                  presence.data.color +
+                  '"/></svg>',
+                iconSize: [22, 22], // size of the icon
+                iconAnchor: [0, 0], // point of the icon which will correspond to marker's location
+                shadowAnchor: [4, 62], // the same for the shadow
+                className: "cursoricon",
+              })}
             >
-              <Tooltip>{presence.user}</Tooltip>
+              <Tooltip
+                direction="right"
+                offset={[20, 20]}
+                opacity={1}
+                permanent
+              >
+                {presence.data.name}
+              </Tooltip>
             </Marker>
           );
-        })} */}
-      {/* <Share mapName="map" /> */}
+        })}
     </>
   );
 }
 
-type Data = {
+export type Data = {
   userId: string;
   roomId: string | string[] | undefined;
   geojson?:
@@ -152,13 +148,53 @@ type Data = {
       } | null)[]
     | undefined;
   places: string[];
-  mapRef: any;
+  mapDetails:
+    | {
+        _id: Id<"map">;
+        _creationTime: number;
+        name?: string | undefined;
+        des?: string | undefined;
+        featIds: Id<"feat">[];
+        mapId: string;
+        isPublic: boolean;
+        anyOneWithLink: {
+          restricted: boolean;
+          canEdit: string[];
+        };
+        creator: string;
+      }
+    | null
+    | undefined;
+
+  profilePic: string;
+  userName: string;
 };
 
 const Map = (props: Data) => {
+  const { user } = useUser();
+  const [toolControl, setToolControl] = useState(false);
+
+  useEffect(() => {
+    if (!props.mapDetails) return;
+
+    for (let i = 0; i < props.mapDetails.anyOneWithLink.canEdit.length; i++) {
+      if (
+        props.mapDetails.anyOneWithLink.canEdit[i] ===
+        user?.emailAddresses[0].emailAddress
+      ) {
+        setToolControl(true);
+        break;
+      }
+    }
+
+    if (props.mapDetails.creator === user?.id) {
+      console.log("creator");
+      setToolControl(true);
+    }
+  }, [props.mapDetails?.anyOneWithLink]);
+
   return (
     <MapContainer
-      ref={props.mapRef}
       center={[0, 0]}
       zoom={13}
       scrollWheelZoom={true}
@@ -214,7 +250,7 @@ const Map = (props: Data) => {
         );
       })}
       <LocationMarker {...props} />
-      <Geoman mapId={props.roomId} />
+      {toolControl && <Geoman mapId={props.roomId} />}
     </MapContainer>
   );
 };

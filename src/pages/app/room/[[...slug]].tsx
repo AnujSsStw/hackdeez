@@ -24,11 +24,13 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconChevronDown, IconLink, IconShare } from "@tabler/icons-react";
-import { useQuery } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import dynamic from "next/dynamic";
 import { useMemo, useRef, useState } from "react";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
+import { notifications } from "@mantine/notifications";
+import { Data } from "@/components/Map";
 
 const Room = () => {
   const Map = useMemo(
@@ -44,7 +46,6 @@ const Room = () => {
 
   const { user } = useUser();
   const { slug } = router.query;
-  const ref = useRef<any>(null);
 
   const geo = useQuery(
     api.map.mapfeat,
@@ -57,12 +58,17 @@ const Room = () => {
     slug !== undefined ? { mapId: slug[0] } : "skip"
   );
 
-  if (!user || !slug) {
-    return <div>Loading...</div>;
+  if (!user || !slug || !mapDetails) {
+    return <NotFoundTitle />;
   }
 
-  if (!mapDetails) {
-    return <NotFoundTitle />;
+  if (
+    user.id !== mapDetails.creator &&
+    slug &&
+    mapDetails &&
+    mapDetails.anyOneWithLink?.restricted === true
+  ) {
+    return <div>Not for you bro</div>;
   }
 
   return (
@@ -73,14 +79,15 @@ const Room = () => {
         d={mapDetails}
         col={geo}
         link={router.asPath}
-        mapRef={ref}
       />
       <Map
         roomId={slug![0]}
         userId={user!.id}
         geojson={geo}
+        profilePic={user.imageUrl}
+        userName={user.firstName as string}
         places={places}
-        mapRef={ref}
+        mapDetails={mapDetails}
       />
     </Flex>
   );
@@ -97,29 +104,18 @@ export function NavbarSearch(props: {
         properties: any;
       } | null)[]
     | undefined;
-  mapRef: any;
   link: string;
   value?: string;
   onChange: (value: any) => void;
-  d:
-    | {
-        _id: Id<"map">;
-        _creationTime: number;
-        name?: string | undefined;
-        des?: string | undefined;
-        featIds: Id<"feat">[];
-        mapId: string;
-        isPublic: boolean;
-      }
-    | null
-    | undefined;
+  d: Data["mapDetails"];
 }) {
   const { classes } = useStyple2();
   const theme = useMantineTheme();
-
-  function handleAccord() {
-    console.log("clicked");
-  }
+  const [value, setValue] = useState(
+    props.d?.anyOneWithLink.restricted ? "Restricted" : "Can edit"
+  );
+  const performMyAction = useAction(api.sendEmail.sendMail);
+  const [email, setEmail] = useState("");
 
   if (!props.col) {
     return <div>Loading...</div>;
@@ -129,7 +125,7 @@ export function NavbarSearch(props: {
     theme.colors[color][theme.colorScheme === "dark" ? 5 : 7];
 
   const collectionLinks = props.col.map((collection) => (
-    <Accordion.Item value={collection?._id!}>
+    <Accordion.Item value={collection?._id!} key={collection?._id}>
       <Accordion.Control
         icon={
           collection?.properties.iconLable === "IconMapPin" ? (
@@ -157,10 +153,24 @@ export function NavbarSearch(props: {
     </Accordion.Item>
   ));
   const [opened, { open, close }] = useDisclosure(false);
+
   async function handleD() {
-    if (props.mapRef) {
-    }
+    // make restricted to true is value is restricted
     close();
+  }
+  async function handleEmailInvite() {
+    await performMyAction({
+      email: email,
+      link: "http://localhost:3000" + props.link,
+    });
+
+    notifications.show({
+      title: "Email Send",
+      message: "Email send Successfully🤥",
+    });
+  }
+  function handleAccord() {
+    console.log("clicked");
   }
 
   return (
@@ -193,9 +203,16 @@ export function NavbarSearch(props: {
             zIndex={10000}
           >
             <Group>
-              <TextInput placeholder="your@email.com" sx={{ width: "283px" }} />
+              <TextInput
+                placeholder="your@email.com"
+                sx={{ width: "283px" }}
+                value={email}
+                onChange={(event) => setEmail(event.currentTarget.value)}
+              />
 
-              <Button variant="outline">Send invite</Button>
+              <Button variant="outline" onClick={handleEmailInvite}>
+                Send invite
+              </Button>
             </Group>
 
             <Group py={3} position="apart">
@@ -204,9 +221,10 @@ export function NavbarSearch(props: {
                 <Text>Anyone with the link</Text>
               </Flex>
               <NativeSelect
-                defaultValue={"Restricted"}
+                value={value}
+                onChange={(event) => setValue(event.currentTarget.value)}
                 placeholder="Your favorite library/framework"
-                data={["Can edit", "Can view", "Restricted"]}
+                data={["Can edit", "Restricted"]}
                 rightSection={<IconChevronDown size="1rem" />}
                 rightSectionWidth={40}
                 variant="filled"

@@ -13,11 +13,7 @@ const Room = () => {
   const Map = useMemo(
     () =>
       dynamic(() => import("@/components/Map"), {
-        loading: () => (
-          <p>
-            <Skeleton height={8} mt={6} width="100%" />
-          </p>
-        ),
+        loading: () => <Skeleton height={8} mt={6} width="100%" />,
         ssr: false,
       }),
     []
@@ -25,6 +21,7 @@ const Room = () => {
   const router = useRouter();
   const [places, setPlaces] = useState<any>([]);
   const [toolControl, setToolControl] = useState(false);
+  const [map, setMap] = useState<any>(null);
 
   const { user } = useUser();
   const { slug } = router.query;
@@ -82,6 +79,7 @@ const Room = () => {
   return (
     <Flex>
       <NavbarSearch
+        mapRef={map}
         onChange={setPlaces}
         value={places}
         d={mapDetails}
@@ -98,6 +96,7 @@ const Room = () => {
         places={places}
         mapDetails={mapDetails}
         toolControl={toolControl}
+        setMapRef={setMap}
       />
     </Flex>
   );

@@ -7,7 +7,6 @@ const UPDATE_MS = 1000;
 
 type FacePileProps = {
   othersPresence?: PresenceData<{
-    emoji: string;
     name: string;
     lat: number;
     lng: number;

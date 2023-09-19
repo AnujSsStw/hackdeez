@@ -43,14 +43,12 @@ export const sendMail = action({
         console.error(error);
         return { message: "Error: Could not send email" };
       }
-      console.log("Email sent: " + info.response);
 
       return { message: "Email sent successfully" };
     });
 
     //   link is from the url
     const l = link.split("/").pop() as string;
-    console.log("l", l);
 
     await ctx.runMutation(internal.map.updateMapI, {
       mapId: l,

@@ -5,11 +5,9 @@ import { Marker, Popup, useMap } from "react-leaflet";
 import { api } from "../../convex/_generated/api";
 
 const Nearby = (props: { places: string[]; id: string }) => {
-  const [alreadyS, setAlreadyS] = useState<any[]>([]);
   const [features, setFeatures] = useState<any[]>([]);
 
   const featAdd = useMutation(api.map.insertFeat);
-  // const mapFeatMut = useMutation(api.map.insertFeatToMap);
 
   const map = useMap();
   useEffect(() => {
@@ -46,8 +44,6 @@ const Nearby = (props: { places: string[]; id: string }) => {
     fetch(url)
       .then((response) => response.json())
       .then((data) => {
-        console.log("hi");
-
         if (data.error) return;
         var marker_icon = L.icon({
           iconUrl: `/assets/${description}-marker.svg`,
@@ -100,8 +96,6 @@ const Nearby = (props: { places: string[]; id: string }) => {
       },
       mapId: props.id as string,
     });
-
-    // await mapFeatMut({ featId: featid, mapId: props.id as string });
   };
 
   return features.map((item, i) => {
@@ -114,7 +108,7 @@ const Nearby = (props: { places: string[]; id: string }) => {
             className="bg-sky-500 hover:bg-sky-700  text-black font-bold py-2 px-4 rounded"
             onClick={() => AddMarker(item)}
           >
-            Save marker 💗
+            Save marker 🤓
           </button>
         </Popup>
       </Marker>

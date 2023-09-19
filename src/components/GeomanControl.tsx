@@ -42,7 +42,6 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
 
   const [isDrawing, setIsDrawing] = useState(false);
   const featAdd = useMutation(api.map.insertFeat);
-  // const mapFeatMut = useMutation(api.map.insertFeatToMap);
   const [locationDes, setLocationDes] = useState<string>("");
   const [runUpdate, setRunUpdate] = useState<boolean>(false);
 
@@ -50,7 +49,6 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
   const [color, onChange] = useState("rgba(47, 119, 150, 0.7)");
 
   useEffect(() => {
-    console.log("collection", collection);
     if (collection.features.length === 0) return;
 
     (async () => {
@@ -58,12 +56,10 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
         mapId: props.mapId as string,
         ...collection.features,
       });
-      // await mapFeatMut({ featId: featid, mapId: props.mapId as string });
     })();
   }, [runUpdate]);
 
   useEffect(() => {
-    console.log("collection", collection);
     if (collection.features.length === 0) return;
     if (collection.type === "drawing") {
       (async () => {
@@ -71,7 +67,6 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
           mapId: props.mapId as string,
           ...collection.features,
         });
-        // await mapFeatMut({ featId: featid, mapId: props.mapId as string });
       })();
     }
   }, [collection]);
@@ -236,7 +231,6 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
 
   function addInCollection() {
     if (locationDes.length === 0) return;
-    console.log("addInCollection");
     setCollection({
       type: "FeatureCollection",
       features: {

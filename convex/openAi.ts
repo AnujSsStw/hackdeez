@@ -44,8 +44,6 @@ export const chat = action({
     // Pull the message content out of the response
     const messageContent = response.choices[0].message?.content;
 
-    console.log("GPT response:", messageContent);
-
     // Send GPT's response as a new message
     await ctx.runMutation(api.message.sendMessage, {
       userId: "ChatGPT",

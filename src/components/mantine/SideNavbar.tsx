@@ -33,6 +33,7 @@ import { Id } from "../../../convex/_generated/dataModel";
 import { Data } from "../Map";
 import Messages from "./Messages";
 import { useStyple2 } from "./random";
+import { useMap } from "react-leaflet";
 
 export function NavbarSearch(props: {
   isCreator: boolean;
@@ -50,6 +51,7 @@ export function NavbarSearch(props: {
   value?: string;
   onChange: (value: any) => void;
   d: Data["mapDetails"];
+  mapRef: any;
 }) {
   const { classes } = useStyple2();
   const theme = useMantineTheme();
@@ -60,6 +62,7 @@ export function NavbarSearch(props: {
   const updateAccess = useMutation(api.map.updateMapAccess);
   const [email, setEmail] = useState("");
   const [opened, { open, close }] = useDisclosure(false);
+  // const map = useMap();
 
   if (!props.col) {
     return <div>Loading...</div>;
@@ -85,15 +88,30 @@ export function NavbarSearch(props: {
       >
         {collection?.properties.popupContent}
       </Accordion.Control>
-      <Accordion.Panel onClick={handleAccord}>
-        <div>
+      <Accordion.Panel>
+        <div
+          onClick={() => {
+            handleAccord(collection?.geometry);
+          }}
+          className="cursor-pointer"
+        >
           {collection?.geometry.type !== "Point" ? (
             <Flex gap={4}>
               <Badge color="indigo">{collection?.properties.area} sq mi</Badge>
               <Badge color="indigo">{collection?.properties.p} mi</Badge>
             </Flex>
           ) : (
-            <div>hi</div>
+            <Flex gap={2}>
+              <Text c="dimmed" size={"sm"}>
+                Coordinates
+              </Text>
+              <Badge color="indigo">
+                {collection?.geometry.coordinates[1]}
+              </Badge>
+              <Badge color="indigo">
+                {collection?.geometry.coordinates[0]}
+              </Badge>
+            </Flex>
           )}
         </div>
       </Accordion.Panel>
@@ -127,8 +145,23 @@ export function NavbarSearch(props: {
       message: "Email send Successfully🤥",
     });
   }
-  function handleAccord() {
-    console.log("clicked");
+  function handleAccord(geometry: { type: string; coordinates: any[] }) {
+    if (geometry.type === "Point") {
+      props.mapRef.flyTo(
+        [geometry.coordinates[1], geometry.coordinates[0]],
+        13
+      );
+    } else if (geometry.type === "Polygon") {
+      props.mapRef.flyTo(
+        [geometry.coordinates[0][0][1], geometry.coordinates[0][0][0]],
+        13
+      );
+    } else if (geometry.type === "LineString") {
+      props.mapRef.flyTo(
+        [geometry.coordinates[0][1], geometry.coordinates[0][0]],
+        13
+      );
+    }
   }
 
   return (

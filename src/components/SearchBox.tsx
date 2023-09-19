@@ -24,7 +24,6 @@ export default function SearchBox(props: {
       };
       //   @ts-ignore
       const queryString = new URLSearchParams(params).toString();
-      console.log(queryString);
 
       fetch(`${NOMINATIM_BASE_URL}${queryString}`, {
         method: "GET",
@@ -32,7 +31,6 @@ export default function SearchBox(props: {
       })
         .then((response) => response.text())
         .then((result) => {
-          console.log(JSON.parse(result));
           setListPlace(JSON.parse(result));
         })
         .catch((err) => console.log("err: ", err));

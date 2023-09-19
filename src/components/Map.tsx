@@ -1,6 +1,5 @@
 import usePresence, { isOnline } from "@/hooks/usePresence";
 import { randomColor } from "@/util/helper";
-import { useUser } from "@clerk/clerk-react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useState } from "react";
@@ -15,12 +14,12 @@ import {
   useMapEvents,
 } from "react-leaflet";
 import { Id } from "../../convex/_generated/dataModel";
+import Copy from "./Copy";
 import Geoman from "./GeomanControl";
 import Facepile from "./Profiles";
 import SearchBox from "./SearchBox";
 import LiveLocationButton from "./mantine/Location";
 import Nearby from "./nearby";
-import Copy from "./Copy";
 
 function LocationMarker(props: Data) {
   const [position, setPosition] = useState<any>([51.52, -0.09]);
@@ -30,7 +29,6 @@ function LocationMarker(props: Data) {
     props.userId,
     props.mapDetails?.isPublic as boolean,
     {
-      emoji: "👋",
       name: props.userName,
       lat: 0,
       lng: 0,
@@ -39,6 +37,9 @@ function LocationMarker(props: Data) {
     }
   );
   const map = useMap();
+  useEffect(() => {
+    props.setMapRef(map);
+  }, []);
 
   const a = useMapEvents({
     locationfound(e) {
@@ -68,7 +69,6 @@ function LocationMarker(props: Data) {
 
   if (!props.mapDetails?.isPublic) {
     map.on("mousemove", function (e) {
-      // console.log("working");
       void updatePresence({ lat: e.latlng.lat, lng: e.latlng.lng });
     });
   }
@@ -170,6 +170,7 @@ export type Data = {
   profilePic: string;
   userName: string;
   toolControl: boolean;
+  setMapRef: any;
 };
 
 const Map = (props: Data) => {

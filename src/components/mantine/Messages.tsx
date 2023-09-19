@@ -29,8 +29,6 @@ const Messages = () => {
   const [openedM, { open: OM, close: CM }] = useDisclosure(false);
   const [message, setMessage] = useState<string>("");
 
-  console.log("openedM", openedM);
-
   const getMsg = useQuery(
     api.message.getMessages,
     slug !== undefined && openedM ? { room: slug[0] as string } : "skip"

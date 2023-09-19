@@ -18,6 +18,8 @@ export const CardBox = ({ type }: { type: string }) => {
   const changeType = useMutation(api.map.changeIsPublic);
 
   function handleRoute(id: string) {
+    console.log(BASE_URL);
+
     window.open(`${BASE_URL}/app/room/${id}`, "_ blank");
   }
 

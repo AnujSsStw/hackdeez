@@ -34,6 +34,7 @@ import { Data } from "../Map";
 import Messages from "./Messages";
 import { useStyple2 } from "./random";
 import { useMap } from "react-leaflet";
+import { BASE_URL } from "@/util/helper";
 
 export function NavbarSearch(props: {
   isCreator: boolean;
@@ -137,7 +138,7 @@ export function NavbarSearch(props: {
   async function handleEmailInvite() {
     await performMyAction({
       email: email,
-      link: "http://localhost:3000" + props.link,
+      link: BASE_URL + props.link,
     });
 
     notifications.show({
@@ -223,7 +224,7 @@ export function NavbarSearch(props: {
             </Group>
 
             <Group position="apart" mt={10}>
-              <CopyButton value={"http://localhost:3000" + props.link}>
+              <CopyButton value={BASE_URL + props.link}>
                 {({ copied, copy }) => (
                   <Button
                     color={copied ? "teal" : "blue"}

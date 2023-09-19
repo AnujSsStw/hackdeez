@@ -1,5 +1,5 @@
 import { HeaderMegaMenu } from "@/components/mantine/Nav";
-import { randomColor } from "@/util/helper";
+import { BASE_URL, randomColor } from "@/util/helper";
 import {
   Box,
   Card,
@@ -21,7 +21,7 @@ const Explore = () => {
   const getAllMaps = useQuery(api.map.getPublicMaps);
 
   function handleRoute(id: string) {
-    window.open(`http://localhost:3000/app/room/${id}`, "_ blank");
+    window.open(`${BASE_URL}/app/room/${id}`, "_ blank");
   }
 
   const cards = getAllMaps?.map((map) => {

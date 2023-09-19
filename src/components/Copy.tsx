@@ -3,6 +3,7 @@ import { notifications } from "@mantine/notifications";
 import { useMutation } from "convex/react";
 import Control from "react-leaflet-custom-control";
 import { api } from "../../convex/_generated/api";
+import { BASE_URL } from "@/util/helper";
 
 const Copy = (props: { mapId: string }) => {
   const createACopy = useMutation(api.map.createACopy);
@@ -18,7 +19,7 @@ const Copy = (props: { mapId: string }) => {
                 title: "Map Copied",
                 message: "Routing to new map",
               });
-              window.open(`http://localhost:3000/app/room/${res}`, "_ blank");
+              window.open(`${BASE_URL}/app/room/${res}`, "_ blank");
             }
           }}
           variant="outline"

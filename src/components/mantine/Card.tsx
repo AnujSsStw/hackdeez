@@ -1,4 +1,4 @@
-import { randomColor } from "@/util/helper";
+import { BASE_URL, randomColor } from "@/util/helper";
 import { useUser } from "@clerk/clerk-react";
 import { Button, Card, Overlay, Text, rem } from "@mantine/core";
 import { useMutation, useQuery } from "convex/react";
@@ -18,7 +18,7 @@ export const CardBox = ({ type }: { type: string }) => {
   const changeType = useMutation(api.map.changeIsPublic);
 
   function handleRoute(id: string) {
-    window.open(`http://localhost:3000/app/room/${id}`, "_ blank");
+    window.open(`${BASE_URL}/app/room/${id}`, "_ blank");
   }
 
   async function handleChangeType(id: string, isPublic: boolean) {

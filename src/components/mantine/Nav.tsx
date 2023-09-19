@@ -20,6 +20,7 @@ import {
   Switch,
   useMantineColorScheme,
   useMantineTheme,
+  Flex,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import {
@@ -36,6 +37,7 @@ import {
 import Image from "next/image";
 import { UserNav } from "../user-nav";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 const useStyles = createStyles((theme) => ({
   link: {
@@ -109,10 +111,11 @@ const useStyles = createStyles((theme) => ({
 export function HeaderMegaMenu() {
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =
     useDisclosure(false);
-  const [linksOpened, { toggle: toggleLinks }] = useDisclosure(false);
   const { classes, theme } = useStyles();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const themee = useMantineTheme();
+
+  const router = useRouter();
 
   return (
     <Box pb={0}>
@@ -120,25 +123,43 @@ export function HeaderMegaMenu() {
       <Header height={60} px="md">
         <Group position="apart" sx={{ height: "100%" }}>
           {/* logo */}
-          <Image src="/vercel.svg" alt="logo" width={50} height={50} />
 
-          <Group
-            sx={{ height: "100%" }}
-            spacing={0}
-            className={classes.hiddenMobile}
-          >
-            <Link href="/app" className={classes.link}>
-              Me
-            </Link>
+          <Flex gap={"xl"}>
+            <Image src="/vercel.svg" alt="logo" width={50} height={50} />
+            <Group
+              sx={{ height: "100%" }}
+              spacing={0}
+              className={classes.hiddenMobile}
+            >
+              <Link
+                href="/app"
+                className={classes.link}
+                style={{
+                  color:
+                    router.pathname === "/app"
+                      ? themee.colors.blue[6]
+                      : themee.colors.gray[6],
+                  fontWeight: router.pathname === "/app" ? 700 : 500,
+                }}
+              >
+                My Maps
+              </Link>
 
-            <Link href="#" className={classes.link}>
-              Explore
-            </Link>
-
-            <Link href="#" className={classes.link}>
-              whLinktever
-            </Link>
-          </Group>
+              <Link
+                href="/app/explore"
+                className={classes.link}
+                style={{
+                  color:
+                    router.pathname === "/app/explore"
+                      ? themee.colors.blue[6]
+                      : themee.colors.gray[6],
+                  fontWeight: router.pathname === "/app/explore" ? 700 : 500,
+                }}
+              >
+                Explore
+              </Link>
+            </Group>
+          </Flex>
 
           <Group className={classes.hiddenMobile}>
             <Switch
@@ -158,7 +179,6 @@ export function HeaderMegaMenu() {
             />
             <UserNav />
           </Group>
-
           <Burger
             opened={drawerOpened}
             onClick={toggleDrawer}
@@ -166,43 +186,6 @@ export function HeaderMegaMenu() {
           />
         </Group>
       </Header>
-
-      <Drawer
-        opened={drawerOpened}
-        onClose={closeDrawer}
-        size="100%"
-        padding="md"
-        title="Navigation"
-        className={classes.hiddenDesktop}
-        zIndex={1000000}
-      >
-        <ScrollArea h={`calc(100vh - ${rem(60)})`} mx="-md">
-          <Divider
-            my="sm"
-            color={theme.colorScheme === "dark" ? "dark.5" : "gray.1"}
-          />
-
-          <a href="#" className={classes.link}>
-            Home
-          </a>
-
-          <a href="#" className={classes.link}>
-            Learn
-          </a>
-          <a href="#" className={classes.link}>
-            Academy
-          </a>
-
-          <Divider
-            my="sm"
-            color={theme.colorScheme === "dark" ? "dark.5" : "gray.1"}
-          />
-
-          <Group position="center" grow pb="xl" px="md">
-            <UserNav />
-          </Group>
-        </ScrollArea>
-      </Drawer>
     </Box>
   );
 }

@@ -28,7 +28,7 @@ import { notifications } from "@mantine/notifications";
 import { IconChevronDown, IconLink, IconShare } from "@tabler/icons-react";
 import { useAction, useMutation, useQuery } from "convex/react";
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
 
@@ -43,6 +43,7 @@ const Room = () => {
   );
   const router = useRouter();
   const [places, setPlaces] = useState<any>([]);
+  const [toolControl, setToolControl] = useState(false);
 
   const { user } = useUser();
   const { slug } = router.query;
@@ -58,25 +59,43 @@ const Room = () => {
     slug !== undefined ? { mapId: slug[0] } : "skip"
   );
 
+  useEffect(() => {
+    if (!mapDetails) return;
+
+    if (!mapDetails.isPublic) {
+      for (let i = 0; i < mapDetails.sendInvite.canEdit.length; i++) {
+        if (
+          mapDetails.sendInvite.canEdit[i] ===
+          user?.emailAddresses[0].emailAddress
+        ) {
+          setToolControl(true);
+          break;
+        }
+      }
+
+      if (mapDetails.anyOneWithLink) {
+        setToolControl(true);
+      }
+    } else if (mapDetails.isPublic) {
+      setToolControl(false);
+    }
+
+    if (mapDetails.creator === user?.id) {
+      console.log("creator");
+      setToolControl(true);
+    }
+  }, [mapDetails?.anyOneWithLink]);
+
   if (!user || !slug || !mapDetails) {
     return <NotFoundTitle />;
-  }
-
-  for (let i = 0; i < mapDetails.sendInvite.canEdit.length; i++) {
-    if (
-      mapDetails.sendInvite.canEdit[i] === user?.emailAddresses[0].emailAddress
-    ) {
-      break;
-    } else {
-      if (
-        user.id !== mapDetails.creator &&
-        slug &&
-        mapDetails &&
-        mapDetails.anyOneWithLink === false
-      ) {
-        return <div>Not for you bro</div>;
-      }
-    }
+  } else if (
+    user.id !== mapDetails.creator &&
+    slug &&
+    mapDetails &&
+    mapDetails.anyOneWithLink === false &&
+    mapDetails.isPublic === false
+  ) {
+    return <div>Not for you bro</div>;
   }
 
   return (
@@ -87,6 +106,7 @@ const Room = () => {
         d={mapDetails}
         col={geo}
         link={router.asPath}
+        isCreator={mapDetails.creator === user.id}
       />
       <Map
         roomId={slug![0]}
@@ -96,12 +116,14 @@ const Room = () => {
         userName={user.firstName as string}
         places={places}
         mapDetails={mapDetails}
+        toolControl={toolControl}
       />
     </Flex>
   );
 };
 
 export function NavbarSearch(props: {
+  isCreator: boolean;
   col:
     | ({
         _id: Id<"feat">;
@@ -271,7 +293,12 @@ export function NavbarSearch(props: {
           </Modal>
 
           <Group position="center">
-            <ActionIcon onClick={open} color="orange" variant="outline">
+            <ActionIcon
+              onClick={open}
+              color="orange"
+              variant="outline"
+              disabled={!props.isCreator || props.d?.isPublic}
+            >
               <IconShare size="1rem" />
             </ActionIcon>
           </Group>

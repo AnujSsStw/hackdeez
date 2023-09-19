@@ -1,6 +1,5 @@
 import { v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
-import { log } from "console";
 
 export const insertFeat = mutation({
   args: {
@@ -157,3 +156,103 @@ export const getMap = query({
     }
   },
 });
+
+export const createACopy = mutation({
+  args: { mapId: v.string() },
+  handler: async (ctx, { mapId }) => {
+    const user = await ctx.auth.getUserIdentity();
+
+    const existing = await ctx.db
+      .query("map")
+      .withIndex("by_mapId", (q) => q.eq("mapId", mapId))
+      .unique();
+
+    if (existing) {
+      const newMapId = guid();
+      await ctx.db.insert("map", {
+        mapId: newMapId,
+        creator: user?.tokenIdentifier.split("|").pop() as string,
+        sendInvite: {
+          restricted: true,
+          canEdit: [],
+        },
+        anyOneWithLink: false,
+        featIds: existing.featIds,
+        name: existing.name,
+        isPublic: false,
+        des: existing.des,
+      });
+      return newMapId;
+    } else {
+      return null;
+    }
+  },
+});
+
+export const getAllUserMaps = query({
+  args: { userId: v.string() },
+  handler: async (ctx, { userId }) => {
+    const existing = await ctx.db
+      .query("map")
+      .filter((q) => q.eq(q.field("creator"), userId))
+      .order("desc")
+      .collect();
+
+    if (existing) {
+      return existing;
+    } else {
+      return null;
+    }
+  },
+});
+
+export const getPublicMaps = query({
+  args: {},
+  handler: async (ctx, {}) => {
+    const existing = await ctx.db
+      .query("map")
+      .filter((q) => q.eq(q.field("isPublic"), true))
+      .collect();
+
+    if (existing) {
+      return existing;
+    } else {
+      return null;
+    }
+  },
+});
+
+export const changeIsPublic = mutation({
+  args: { mapId: v.string(), isPublic: v.boolean() },
+  handler: async (ctx, { mapId, isPublic }) => {
+    const existing = await ctx.db
+      .query("map")
+      .withIndex("by_mapId", (q) => q.eq("mapId", mapId))
+      .unique();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, { isPublic });
+    }
+  },
+});
+
+function S4() {
+  return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+}
+
+// then to call it, plus stitch in '4' in the third group
+var guid = () =>
+  (
+    S4() +
+    S4() +
+    "-" +
+    S4() +
+    "-4" +
+    S4().substr(0, 3) +
+    "-" +
+    S4() +
+    "-" +
+    S4() +
+    S4() +
+    S4()
+  ).toLowerCase();

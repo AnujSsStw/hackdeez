@@ -45,6 +45,7 @@ const OLD_MS = 10000;
 export const usePresence = <T extends { [key: string]: Value }>(
   room: string,
   user: string,
+  isPublic: boolean,
   initialData: T,
   heartbeatPeriod = HEARTBEAT_PERIOD
 ) => {
@@ -57,6 +58,10 @@ export const usePresence = <T extends { [key: string]: Value }>(
   }
   const updatePresence = useSingleFlight(useMutation(api.presence.update));
   const heartbeat = useSingleFlight(useMutation(api.presence.heartbeat));
+
+  if (isPublic) {
+    return [data, presence, updatePresence] as const;
+  }
 
   useEffect(() => {
     void updatePresence({ room, user, data });

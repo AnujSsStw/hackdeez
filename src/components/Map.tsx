@@ -20,6 +20,7 @@ import Facepile from "./Profiles";
 import SearchBox from "./SearchBox";
 import LiveLocationButton from "./mantine/Location";
 import Nearby from "./nearby";
+import Copy from "./Copy";
 
 function LocationMarker(props: Data) {
   const [position, setPosition] = useState<any>([51.52, -0.09]);
@@ -27,6 +28,7 @@ function LocationMarker(props: Data) {
   const [data, others, updatePresence] = usePresence(
     props.roomId as string,
     props.userId,
+    props.mapDetails?.isPublic as boolean,
     {
       emoji: "👋",
       name: props.userName,
@@ -64,10 +66,12 @@ function LocationMarker(props: Data) {
     }
   }, [searchLocation]);
 
-  map.on("mousemove", function (e) {
-    // console.log("working");
-    void updatePresence({ lat: e.latlng.lat, lng: e.latlng.lng });
-  });
+  if (!props.mapDetails?.isPublic) {
+    map.on("mousemove", function (e) {
+      // console.log("working");
+      void updatePresence({ lat: e.latlng.lat, lng: e.latlng.lng });
+    });
+  }
 
   const icon = L.icon({
     iconUrl: "/assets/marker.svg",
@@ -90,39 +94,42 @@ function LocationMarker(props: Data) {
         setSelectPosition={setSearchLocation}
       />
       <Nearby places={props.places} id={props.roomId as string} />
+      {!props.mapDetails?.isPublic && (
+        <>
+          <Facepile othersPresence={others} />
 
-      <Facepile othersPresence={others} />
-
-      {others
-        ?.filter(isOnline)
-        .filter((presence) => presence.data.lat && presence.data.lng)
-        .map((presence) => {
-          return (
-            <Marker
-              key={presence.updated}
-              position={[presence.data.lat, presence.data.lng]}
-              icon={L.divIcon({
-                html:
-                  '<svg width="18" height="18" style="z-index:9999!important; cursor:none;" viewBox="0 0 18 18" fill="none" style="background:none;" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.51169 15.8783L1.08855 3.64956C0.511984 2.05552 2.05554 0.511969 3.64957 1.08853L15.8783 5.51168C17.5843 6.12877 17.6534 8.51606 15.9858 9.23072L11.2573 11.2573L9.23074 15.9858C8.51607 17.6534 6.12878 17.5843 5.51169 15.8783Z" fill="' +
-                  presence.data.color +
-                  '"/></svg>',
-                iconSize: [22, 22], // size of the icon
-                iconAnchor: [0, 0], // point of the icon which will correspond to marker's location
-                shadowAnchor: [4, 62], // the same for the shadow
-                className: "cursoricon",
-              })}
-            >
-              <Tooltip
-                direction="right"
-                offset={[20, 20]}
-                opacity={1}
-                permanent
-              >
-                {presence.data.name}
-              </Tooltip>
-            </Marker>
-          );
-        })}
+          {others
+            ?.filter(isOnline)
+            .filter((presence) => presence.data.lat && presence.data.lng)
+            .map((presence) => {
+              return (
+                <Marker
+                  key={presence.updated}
+                  position={[presence.data.lat, presence.data.lng]}
+                  icon={L.divIcon({
+                    html:
+                      '<svg width="18" height="18" style="z-index:9999!important; cursor:none;" viewBox="0 0 18 18" fill="none" style="background:none;" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.51169 15.8783L1.08855 3.64956C0.511984 2.05552 2.05554 0.511969 3.64957 1.08853L15.8783 5.51168C17.5843 6.12877 17.6534 8.51606 15.9858 9.23072L11.2573 11.2573L9.23074 15.9858C8.51607 17.6534 6.12878 17.5843 5.51169 15.8783Z" fill="' +
+                      presence.data.color +
+                      '"/></svg>',
+                    iconSize: [22, 22], // size of the icon
+                    iconAnchor: [0, 0], // point of the icon which will correspond to marker's location
+                    shadowAnchor: [4, 62], // the same for the shadow
+                    className: "cursoricon",
+                  })}
+                >
+                  <Tooltip
+                    direction="right"
+                    offset={[20, 20]}
+                    opacity={1}
+                    permanent
+                  >
+                    {presence.data.name}
+                  </Tooltip>
+                </Marker>
+              );
+            })}
+        </>
+      )}
     </>
   );
 }
@@ -162,31 +169,10 @@ export type Data = {
 
   profilePic: string;
   userName: string;
+  toolControl: boolean;
 };
 
 const Map = (props: Data) => {
-  const { user } = useUser();
-  const [toolControl, setToolControl] = useState(false);
-
-  useEffect(() => {
-    if (!props.mapDetails) return;
-
-    for (let i = 0; i < props.mapDetails.sendInvite.canEdit.length; i++) {
-      if (
-        props.mapDetails.sendInvite.canEdit[i] ===
-        user?.emailAddresses[0].emailAddress
-      ) {
-        setToolControl(true);
-        break;
-      }
-    }
-
-    if (props.mapDetails.creator === user?.id) {
-      console.log("creator");
-      setToolControl(true);
-    }
-  }, [props.mapDetails?.anyOneWithLink]);
-
   return (
     <MapContainer
       center={[0, 0]}
@@ -244,7 +230,11 @@ const Map = (props: Data) => {
         );
       })}
       <LocationMarker {...props} />
-      {toolControl && <Geoman mapId={props.roomId} />}
+      {props.toolControl ? (
+        <Geoman mapId={props.roomId} />
+      ) : (
+        <Copy mapId={props.roomId as string} />
+      )}
     </MapContainer>
   );
 };

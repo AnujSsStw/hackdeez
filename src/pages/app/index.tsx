@@ -1,32 +1,10 @@
-import Image from "next/image";
-import { Inter } from "next/font/google";
-import { UserButton } from "@clerk/nextjs";
+import { CardBox } from "@/components/mantine/Card";
 import { HeaderMegaMenu } from "@/components/mantine/Nav";
-import {
-  Box,
-  BackgroundImage,
-  Center,
-  Text,
-  Button,
-  Paper,
-  Divider,
-  Tabs,
-} from "@mantine/core";
+import { Box, Button, Container, SimpleGrid, Tabs, Text } from "@mantine/core";
+import { IconMessageCircle, IconPhoto, IconPlus } from "@tabler/icons-react";
 import Link from "next/link";
-import {
-  IconMessageCircle,
-  IconPhoto,
-  IconPlus,
-  IconSettings,
-} from "@tabler/icons-react";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export default function App() {
-  function handleCreatePlan() {
-    alert("Create Plan");
-  }
-
   return (
     <>
       <HeaderMegaMenu />
@@ -66,21 +44,18 @@ export default function App() {
             <Tabs.Tab value="public" icon={<IconMessageCircle size="0.8rem" />}>
               Public
             </Tabs.Tab>
-            <Tabs.Tab value="private" icon={<IconSettings size="0.8rem" />}>
-              Private
-            </Tabs.Tab>
           </Tabs.List>
 
           <Tabs.Panel value="all" pt="xs">
-            all tab content
+            <Container py="xl">
+              <SimpleGrid cols={3}>{CardBox({ type: "all" })}</SimpleGrid>
+            </Container>
           </Tabs.Panel>
 
           <Tabs.Panel value="public" pt="xs">
-            public tab content
-          </Tabs.Panel>
-
-          <Tabs.Panel value="private" pt="xs">
-            private tab content
+            <Container py="xl">
+              <SimpleGrid cols={3}>{CardBox({ type: "public" })}</SimpleGrid>
+            </Container>
           </Tabs.Panel>
         </Tabs>
       </Box>

@@ -23,7 +23,6 @@ import { LineString, MultiLineString } from "geojson";
 import L from "leaflet";
 import "leaflet-routing-machine";
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
-import "leaflet-simple-map-screenshoter";
 import { useEffect, useState } from "react";
 import { useMap } from "react-leaflet";
 import { api } from "../../convex/_generated/api";

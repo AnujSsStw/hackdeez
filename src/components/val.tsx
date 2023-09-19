@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import ElementMaker from "./elment";
 
+// for testing new ui
 function Foo(props: { emoji: string; label: string; classs: string }) {
   // Set App's state
   const [fullName, setFullName] = useState(props.label);

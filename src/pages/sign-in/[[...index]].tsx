@@ -1,12 +1,8 @@
 import { SignIn } from "@clerk/nextjs";
-import { Box } from "@mantine/core";
 
 const SignInPage = () => (
-  <Box
-    sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
-    h={"100vh"}
-  >
+  <div className="flex justify-center items-center h-screen">
     <SignIn path="/sign-in" routing="path" signUpUrl="/sign-up" />
-  </Box>
+  </div>
 );
 export default SignInPage;

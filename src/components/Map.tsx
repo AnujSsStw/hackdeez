@@ -69,6 +69,7 @@ function LocationMarker(props: Data) {
 
   if (!props.mapDetails?.isPublic) {
     map.on("mousemove", function (e) {
+      // @ts-ignore
       void updatePresence({ lat: e.latlng.lat, lng: e.latlng.lng });
     });
   }
@@ -185,7 +186,6 @@ const Map = (props: Data) => {
       <TileLayer
         attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        // className="map-tile"
       />
       {props.geojson?.map((feat) => {
         return (

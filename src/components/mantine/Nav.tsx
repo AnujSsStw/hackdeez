@@ -124,8 +124,8 @@ export function HeaderMegaMenu() {
         <Group position="apart" sx={{ height: "100%" }}>
           {/* logo */}
 
-          <Flex gap={"xl"}>
-            <Image src="/vercel.svg" alt="logo" width={50} height={50} />
+          <Flex gap={"xl"} align={"center"}>
+            <Image src="/icon.svg" alt="logo" width={50} height={50} />
             <Group
               sx={{ height: "100%" }}
               spacing={0}

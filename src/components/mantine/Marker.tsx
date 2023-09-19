@@ -1,6 +1,5 @@
 import { Avatar, Group, MultiSelect, Text } from "@mantine/core";
 import { forwardRef } from "react";
-import { useState } from "react";
 
 function Select(props: { value: any; setValue: (value: any) => void }) {
   window.addEventListener("keydown", (e) => {
@@ -11,7 +10,6 @@ function Select(props: { value: any; setValue: (value: any) => void }) {
 
   return (
     <MultiSelect
-      // label="Places"
       placeholder="Places nearby"
       itemComponent={SelectItem}
       data={data}
@@ -36,42 +34,38 @@ export const data = [
     image: "/assets/services-button.svg",
     label: "Services",
     value: "atm",
-    description:
-      "bank, coworking, embassy, library, police, post_box, post_office",
+    description: "bank, police, post_box, post_office",
   },
 
   {
     image: "/assets/food-button.svg",
     label: "Food",
     value: "restaurant",
-    description:
-      "bar, fast-food, seafood, food, organic, deli, confectionery, bakery",
+    description: "bar, fast-food, seafood, food, bakery",
   },
   {
     image: "/assets/shopping-button.svg",
     label: "Shopping",
     value: "fashion",
-    description:
-      "beauty, art, bicycle, books, carpet, clothes, computer, cosmetics, department_store, electronics, fashion, florist, furniture, garden_centre, general, gift, hardware, jewelry, kiosk, mall, music, shoes, shopping_centre, sports, stationery, toys",
+    description: "beauty, art, books, carpet, clothes",
   },
   {
     image: "/assets/groceries-button.svg",
     label: "Groceries",
     value: "supermarket",
-    description: "convenience, deli, organic, markerplace",
+    description: "convenience, organic, markerplace",
   },
   {
     image: "/assets/health-button.svg",
     label: "Health",
     value: "hospital",
-    description:
-      "pharmacy, massage, optician, salon, hairdresser, clinic, dentist, doctors, gym",
+    description: "pharmacy, dentist, doctors",
   },
   {
     image: "/assets/hotels-button.svg",
     label: "Hotels",
     value: "hotel",
-    description: "chalet, camp_site, caravan_site, guest_house, hostel, motel",
+    description: "guest_house, hostel, motel",
   },
   {
     image: "/assets/transport-button.svg",

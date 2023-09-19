@@ -13,11 +13,8 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import {
   IconColorSwatch,
-  IconMapPin,
   IconPencil,
   IconPencilBolt,
-  IconPolygon,
-  IconRoute,
 } from "@tabler/icons-react";
 // @ts-ignore
 import * as turf from "@turf/turf";
@@ -26,11 +23,11 @@ import { LineString, MultiLineString } from "geojson";
 import L from "leaflet";
 import "leaflet-routing-machine";
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
-import { use, useEffect, useState } from "react";
+import "leaflet-simple-map-screenshoter";
+import { useEffect, useState } from "react";
 import { useMap } from "react-leaflet";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
-import "leaflet-simple-map-screenshoter";
 
 const Geoman = (props: { mapId: string | string[] | undefined }) => {
   const map = useMap();
@@ -45,7 +42,7 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
 
   const [isDrawing, setIsDrawing] = useState(false);
   const featAdd = useMutation(api.map.insertFeat);
-  const mapFeatMut = useMutation(api.map.insertFeatToMap);
+  // const mapFeatMut = useMutation(api.map.insertFeatToMap);
   const [locationDes, setLocationDes] = useState<string>("");
   const [runUpdate, setRunUpdate] = useState<boolean>(false);
 
@@ -57,8 +54,11 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
     if (collection.features.length === 0) return;
 
     (async () => {
-      const featid = await featAdd(collection.features);
-      await mapFeatMut({ featId: featid, mapId: props.mapId as string });
+      await featAdd({
+        mapId: props.mapId as string,
+        ...collection.features,
+      });
+      // await mapFeatMut({ featId: featid, mapId: props.mapId as string });
     })();
   }, [runUpdate]);
 
@@ -67,17 +67,14 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
     if (collection.features.length === 0) return;
     if (collection.type === "drawing") {
       (async () => {
-        const featid = await featAdd(collection.features);
-        await mapFeatMut({ featId: featid, mapId: props.mapId as string });
+        await featAdd({
+          mapId: props.mapId as string,
+          ...collection.features,
+        });
+        // await mapFeatMut({ featId: featid, mapId: props.mapId as string });
       })();
     }
   }, [collection]);
-  // useEffect(() => {
-  //   if (map.hasLayer(L.simpleMapScreenshoter() as any)) {
-  //     map.removeLayer(L.simpleMapScreenshoter() as any);
-  //   }
-  //   L.simpleMapScreenshoter().addTo(map);
-  // }, []);
 
   useEffect(() => {
     map.pm.setLang("en");
@@ -207,7 +204,6 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
       map.on("click", function () {
         paintMode = !paintMode;
         if (paintMode) {
-          // add a marker of pencil
           myPolyline = L.polyline([], {
             color: color,
             weight: 3,
@@ -323,14 +319,13 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
 
       <Dialog
         opened={opened}
-        // withCloseButton
         onClose={close}
         size="lg"
         radius="md"
         zIndex={999999999999}
       >
         <Text size="sm" mb="xs" weight={500}>
-          Subscribe to email newsletter
+          Says something about this place
         </Text>
 
         <Group align="flex-end">
@@ -338,7 +333,7 @@ const Geoman = (props: { mapId: string | string[] | undefined }) => {
             onChange={(e) => {
               setLocationDes(e.currentTarget.value);
             }}
-            placeholder="hello@gluesticker.com"
+            placeholder="Cool nice place"
             sx={{ flex: 1 }}
             value={locationDes}
           />

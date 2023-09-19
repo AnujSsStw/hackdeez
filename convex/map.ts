@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
+import { api } from "./_generated/api";
 
 export const insertFeat = mutation({
   args: {
@@ -7,15 +8,20 @@ export const insertFeat = mutation({
     geometry: v.any(),
     properties: v.any(),
     style: v.optional(v.any()),
+    mapId: v.string(),
   },
-  handler: async (ctx, { geometry, type, properties, style }) => {
+  handler: async (ctx, { geometry, type, properties, style, mapId }) => {
     const feat = await ctx.db.insert("feat", {
       geometry,
       type,
       properties,
       style,
     });
-    return feat;
+
+    ctx.scheduler.runAfter(0, api.map.insertFeatToMap, {
+      mapId: mapId,
+      featId: feat,
+    });
   },
 });
 
@@ -35,8 +41,6 @@ export const insertFeatToMap = mutation({
 export const updateMapI = internalMutation({
   args: { mapId: v.string(), email: v.string() },
   handler: async (ctx, { email, mapId }) => {
-    console.log("updateMapI", email, mapId);
-
     const map = await ctx.db
       .query("map")
       .withIndex("by_mapId", (q) => q.eq("mapId", mapId))

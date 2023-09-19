@@ -1,15 +1,15 @@
+import { useMutation } from "convex/react";
 import L from "leaflet";
 import { useEffect, useState } from "react";
 import { Marker, Popup, useMap } from "react-leaflet";
 import { api } from "../../convex/_generated/api";
-import { useMutation } from "convex/react";
 
 const Nearby = (props: { places: string[]; id: string }) => {
   const [alreadyS, setAlreadyS] = useState<any[]>([]);
   const [features, setFeatures] = useState<any[]>([]);
 
   const featAdd = useMutation(api.map.insertFeat);
-  const mapFeatMut = useMutation(api.map.insertFeatToMap);
+  // const mapFeatMut = useMutation(api.map.insertFeatToMap);
 
   const map = useMap();
   useEffect(() => {
@@ -41,18 +41,13 @@ const Nearby = (props: { places: string[]; id: string }) => {
 
     if (description.length === 0) return;
 
-    let url;
-    if (alreadyS.length === 0) {
-      url = `https://nominatim.openstreetmap.org/search?viewbox=${coordinates}&format=geocodejson&limit=20&bounded=1&amenity=${description}`;
-    } else {
-      url = `https://nominatim.openstreetmap.org/search?viewbox=${coordinates}&format=geocodejson&limit=20&bounded=1&amenity=${description}&exclude_place_ids=${JSON.stringify(
-        alreadyS
-      )}`;
-    }
+    const url = `https://nominatim.openstreetmap.org/search?viewbox=${coordinates}&format=geocodejson&limit=20&bounded=1&amenity=${description}`;
 
     fetch(url)
       .then((response) => response.json())
       .then((data) => {
+        console.log("hi");
+
         if (data.error) return;
         var marker_icon = L.icon({
           iconUrl: `/assets/${description}-marker.svg`,
@@ -77,48 +72,50 @@ const Nearby = (props: { places: string[]; id: string }) => {
             popupContent: place.properties.geocoding.label,
             properties: place.properties,
           });
-          setAlreadyS(place.properties.geocoding.place_id);
         });
 
         setFeatures([...p]);
       });
   }, [props.places]);
 
-  const AddMarker = (index: number) => {
-    map.eachLayer(async (layer) => {
-      if (layer.options && layer.options.pane === "markerPane") {
-        if (layer.options.uniceid === index) {
-          const featid = await featAdd({
-            geometry: {
-              type: "Point",
-              coordinates: [layer._latlng.lng, layer._latlng.lat],
-            },
-            type: "Feature",
-            style: {
-              //   color: "#3388ff",
-              weight: 5,
-              opacity: 0.65,
-            },
-            properties: {
-              popupContent: layer._popup.options.children[0].props.children,
-              icon: layer.options.icon.options.iconUrl,
-            },
-          });
-
-          await mapFeatMut({ featId: featid, mapId: props.id as string });
-        }
-      }
+  const AddMarker = async (layer: {
+    icon: L.Icon<L.IconOptions>;
+    position: any[];
+    popupContent: any;
+    properties: any;
+  }) => {
+    await featAdd({
+      geometry: {
+        type: "Point",
+        coordinates: [layer.position[1], layer.position[0]],
+      },
+      type: "Feature",
+      style: {
+        weight: 5,
+        opacity: 0.65,
+      },
+      properties: {
+        popupContent: layer.popupContent,
+        icon: layer.icon.options.iconUrl,
+      },
+      mapId: props.id as string,
     });
-    // console.log(a);
+
+    // await mapFeatMut({ featId: featid, mapId: props.id as string });
   };
 
   return features.map((item, i) => {
     return (
       // @ts-ignore
       <Marker icon={item.icon} position={item.position} key={i} uniceid={i}>
-        <Popup className="">
-          <div>{item.popupContent}</div>
-          <button onClick={() => AddMarker(i)}>Save marker 💗</button>
+        <Popup className="bg-white border-2 border-gray-200 rounded-lg shadow-lg max-w-xs">
+          <div className="pb-2">{item.popupContent}</div>
+          <button
+            className="bg-sky-500 hover:bg-sky-700  text-black font-bold py-2 px-4 rounded"
+            onClick={() => AddMarker(item)}
+          >
+            Save marker 💗
+          </button>
         </Popup>
       </Marker>
     );

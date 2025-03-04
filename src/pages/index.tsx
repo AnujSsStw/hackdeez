@@ -122,7 +122,7 @@ export default function Home() {
             >
               Get started
             </Button>
-            <Button
+{/*             <Button
               variant="default"
               radius="xl"
               size="md"
@@ -132,7 +132,7 @@ export default function Home() {
               }}
             >
               Source code
-            </Button>
+            </Button> */}
           </Group>
         </div>
         <Image src={"/pic1.jpeg"} className={classes.image} />
